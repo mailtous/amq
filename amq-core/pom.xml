@@ -4,11 +4,6 @@
 
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
-    <!---->
-    <name>amq-core</name>
-    <groupId>com.artlongs.amq</groupId>
-    <artifactId>amq-core</artifactId>
-    <version>0.0.1-snapshot</version>
 
     <parent>
         <groupId>com.artlongs.amq</groupId>
@@ -16,6 +11,12 @@
         <version>0.0.1-snapshot</version>
         <relativePath>../amq-parent/pom.xml</relativePath>
     </parent>
+
+    <!---->
+    <name>amq-core</name>
+    <groupId>com.artlongs.amq</groupId>
+    <artifactId>amq-core</artifactId>
+    <version>0.0.1-snapshot</version>
 
     <profiles>
         <profile>
