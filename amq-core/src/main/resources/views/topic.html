@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>AMQ TOPIC</title>
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/riot@3.7.4/riot+compiler.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/riot-route@x.x.x/dist/route.min.js"></script>
+    <script src="/views/asset/js/app.js"></script>
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style>
+        body {
+            background: #f2f2f2
+        }
+    </style>
+</head>
+<tag-load>
+    <script type="riot/tag" src="/views/asset/tags/topic_list.tag.html"></script>
+    <script type="riot/tag" src="/views/asset/tags/page.tag.html"></script>
+</tag-load>
+<body>
+<topiclist>主题列表</topiclist>
+</body>
+</html>
+<script>
+
+    /*    eventBus.on('tree_data', function (data) {
+            console.log("data hoe=" + data);
+
+        });
+
+        //取得菜单内容
+        function fetchMenuData() {
+            $.getJSON(targetUrl, function (data) {
+                eventBus.trigger("tree_data", data);
+                return data;
+            });
+
+        }*/
+
+    //page change ...
+    var pageSize = 10;
+    var total = 100;
+    var pageParams = {limit: pageSize, count: total, dropup: false};
+    riot.observable(pageParams);
+    riot.mount("page-nav",pageParams);
+    // riot.mount("page-nav");
+
+
+
+    //加载所有TAG
+    riot.mount('*');
+    route.start(true);
+
+</script>

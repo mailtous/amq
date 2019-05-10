@@ -1,0 +1,1 @@
+ACT在多模块的项目里,需要对 AppStart 配置运行参数 working directory 为: $MODULE_DIR$

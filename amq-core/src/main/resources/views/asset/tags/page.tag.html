@@ -1,0 +1,87 @@
+<page-nav>
+    <div class="btn-group" role="group" aria-label="..." if={this.pagecount>1}>
+        <div class="btn-group dropdown {dropup:opts.dropup}" role="group">
+            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                每页显示: <b>{limit}</b> 条<span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu"  aria-labelledby="dropdownMenu1">
+                <li><a href="#" class="btn-pagecount" >10</a></li>
+                <li><a href="#" class="btn-pagecount" >20</a></li>
+                <li><a href="#" class="btn-pagecount" >50</a></li>
+                <li><a href="#" class="btn-pagecount" >100</a></li>
+            </ul>
+        </div>
+        <button if={start>1} type="button" class="btn btn-default btn-first" onclick="{first}"><i class="fa fa-angle-double-left"></i></button>
+        <button if={start>1} type="button" class="btn btn-default btn-prev" onclick="{prev}"><i class="fa fa-angle-left"></i></button>
+        <button if={start*limit<=count} type="button" class="btn  btn-1 {btn-info:page==start} {btn-default:page!=start} btn-page" >{start}</button>
+        <button if={(start)*limit<=count} type="button" class="btn  btn-2 {btn-info:page==start+1} {btn-default:page!=start+1} btn-page" >{start+1}</button>
+        <button if={(start+1)*limit<=count} type="button" class="btn  btn-3 {btn-info:page==start+2} {btn-default:page!=start+2} btn-page" >{start+2}</button>
+        <button if={(start+2)*limit<=count} type="button" class="btn  btn-4 {btn-info:page==start+3} {btn-default:page!=start+3} btn-page" >{start+3}</button>
+        <button if={(start+3)*limit<=count} type="button" class="btn  btn-5 {btn-info:page==start+4} {btn-default:page!=start+4} btn-page" >{start+4}</button>
+        <button if={(start+4)*limit<=count} type="button" class="btn  btn-default btn-next" onclick="{next}"><i class="fa fa-angle-right"></i></button>
+        <button if={(start+4)*limit<=count} type="button" class="btn  btn-default btn-last" onclick="{last}"><i class="fa fa-angle-double-right"></i></button>
+    </div>
+    <script>
+        var self = this;
+        this.count=opts.count||10;
+        this.start=opts.start||1;
+        this.limit=opts.limit||20;
+        this.pagecount=parseInt(this.count/this.limit);
+        if(this.count%this.limit>0) {
+            this.pagecount++;
+        }
+        this.page=opts.page||1;
+
+        eventBus.on("page-result", function (total,pageNumber,pageSize) {
+            console.log("pageSize:" + pageSize);
+            console.log("total:" + total);
+            self.limit = pageSize;
+            self.page = pageNumber;
+            self.count = total;
+            self.update();
+        });
+
+        this.on("mount",function(){
+            $(".btn-pagecount").on("click",function(){
+                self.limit=parseInt($(this).text());
+                eventBus.trigger("page-limit-change",self.limit);
+                self.page=1;
+                self.start=1;
+                self.update();
+                eventBus.trigger("page-number-change",self.page);
+            });
+
+            $(".btn-page").on("click",function(){
+                self.page=parseInt($(this).text());
+                self.update();
+                eventBus.trigger("page-number-change",self.page);
+            });
+        });
+
+        first(){
+            this.start=1;
+            this.page=1;
+            eventBus.trigger("page-number-change",this.page);
+        };
+
+        prev(){
+            this.page--;
+            if(this.page<this.start)
+                this.start=this.page;
+            eventBus.trigger("page-number-change",this.page);
+        };
+
+        next(){
+            this.page++;
+            if(this.page>this.start+4)
+                this.start++;
+            eventBus.trigger("page-number-change",this.page);
+        };
+
+        last(){
+            this.page=this.pagecount;
+            this.start=Math.max(this.pagecount-4,1);
+            eventBus.trigger("page-number-change",this.page);
+        };
+    </script>
+</page-nav>

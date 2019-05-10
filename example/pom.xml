@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>pom</packaging>
+
+    <parent>
+        <artifactId>amq-parent</artifactId>
+        <groupId>com.artlongs.amq</groupId>
+        <version>0.0.1-snapshot</version>
+        <relativePath>../amq-parent/pom.xml</relativePath>
+    </parent>
+
+    <groupId>com.artlongs.amq</groupId>
+    <artifactId>example</artifactId>
+    <version>0.0.1-snapshot</version>
+
+    <modules>
+        <module>act</module>
+        <module>spring-boot</module>
+    </modules>
+
+
+</project>

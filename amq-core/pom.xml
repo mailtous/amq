@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>jar</packaging>
+    <!---->
+    <name>amq-core</name>
+    <groupId>com.artlongs.amq</groupId>
+    <artifactId>amq-core</artifactId>
+    <version>0.0.1-snapshot</version>
+
+    <parent>
+        <groupId>com.artlongs.amq</groupId>
+        <artifactId>amq-parent</artifactId>
+        <version>0.0.1-snapshot</version>
+        <relativePath>../amq-parent/pom.xml</relativePath>
+    </parent>
+
+    <profiles>
+        <profile>
+            <id>prod</id>
+            <properties>
+                <profile.env>prod</profile.env>
+            </properties>
+        </profile>
+        <profile>
+            <id>test</id>
+            <properties>
+                <profile.env>test</profile.env>
+            </properties>
+        </profile>
+        <profile>
+            <id>dev</id>
+            <properties>
+                <profile.env>dev</profile.env>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+    </profiles>
+
+    <properties>
+        <mapdb.version>3.0.7</mapdb.version>
+        <fst.version>2.56</fst.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.mapdb</groupId>
+            <artifactId>mapdb</artifactId>
+            <version>${mapdb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>de.ruedigermoeller</groupId>
+            <artifactId>fst</artifactId>
+            <version>${fst.version}</version>
+        </dependency>
+        <dependency>
+            <!-- 解析 lambda 条件表达式 -->
+            <groupId>com.trigersoft</groupId>
+            <artifactId>jaque</artifactId>
+            <version>2.1.2</version>
+        </dependency>
+
+  <!--      <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-project</artifactId>
+            <version>3.0-alpha-2</version>
+        </dependency>-->
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- 直接通过 MAVEN 运行 JAVA 的插件-->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <executable>java</executable>
+                    <!--<mainClass>com.artlongs.amq.core.AioMqServer</mainClass>-->
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
