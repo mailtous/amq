@@ -11,8 +11,7 @@
     <version>0.0.1-snapshot</version>
 
     <modules>
-        <module>amq-core</module>
-        <module>example</module>
+        <module>amq-parent</module>
     </modules>
 
 </project>

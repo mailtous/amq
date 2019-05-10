@@ -6,8 +6,8 @@
     <packaging>pom</packaging>
 
     <parent>
-        <artifactId>amq-parent</artifactId>
         <groupId>com.artlongs.amq</groupId>
+        <artifactId>amq-parent</artifactId>
         <version>0.0.1-snapshot</version>
         <relativePath>../amq-parent/pom.xml</relativePath>
     </parent>
