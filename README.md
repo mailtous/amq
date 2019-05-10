@@ -18,6 +18,7 @@ Artlongs-MQ 简称(AMQ), 是一个极轻量化,依赖极度少的 MQ 消息系�
 Aio的源码来源于 smart-socket(https://github.com/smartboot/smart-socket) ,感谢三刀兄,虽然我魔改了它!
 
 #MAVEN:
+```xml
 <repositories>
 		<repository>
 		    <id>jitpack.io</id>
@@ -29,6 +30,7 @@ Aio的源码来源于 smart-socket(https://github.com/smartboot/smart-socket) ,�
 	    <artifactId>amq-core</artifactId>
 	    <version>0.0.1-snapshot</version>
 	</dependency>
+```
 
 #注意事项:
 AMQ 的持久化方案使用了内嵌型的 MAPDB,而 MAPDB 是用 Kotlin 编写的,故使用IDEA进行原码编译的话,需求安装 Kotlin plugin.
