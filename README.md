@@ -20,16 +20,16 @@ Aio的源码来源于 smart-socket(https://github.com/smartboot/smart-socket) ,�
 #MAVEN:
 ```xml
 <repositories>
-		<repository>
-		    <id>jitpack.io</id>
-		    <url>https://jitpack.io</url>
-		</repository>
-	</repositories>
-  <dependency>
-	    <groupId>com.github.mailtous</groupId>
-	    <artifactId>amq-core</artifactId>
-	    <version>0.0.1-snapshot</version>
-	</dependency>
+   <repository>
+    <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
+   </repository>
+</repositories>
+<dependency>
+    <groupId>com.github.mailtous</groupId>
+    <artifactId>amq-core</artifactId>
+    <version>0.0.1-snapshot</version>
+</dependency>
 ```
 
 #注意事项:
