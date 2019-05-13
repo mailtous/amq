@@ -32,7 +32,7 @@ public class TestRecv1 {
         Call<Message> callback = (msg)->{
             execBack(msg);
         };
-        processor.subscribe("topic_hello",Message.Life.FOREVER,callback);
+        processor.subscribe("topic_hello",callback);
 
     }
 

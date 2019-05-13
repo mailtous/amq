@@ -17,6 +17,14 @@ public interface MqClientAction {
     <V> boolean publish(String topic, V v);
 
     /**
+     * 普通的订阅消息(默认存活周期为 {@link Message.Life#FOREVER} )
+     *
+     * @param topic
+     * @param callBack
+     */
+    <V> void subscribe(String topic, Call<V> callBack);
+
+    /**
      * 普通的订阅消息
      *
      * @param topic
@@ -66,7 +74,7 @@ public interface MqClientAction {
     <V> boolean finishJob(String topic, V v, String acceptJobId);
 
     /**
-     * 确认收到消息
+     * 确认收到消息(签收)
      *
      * @param messageId
      * @return

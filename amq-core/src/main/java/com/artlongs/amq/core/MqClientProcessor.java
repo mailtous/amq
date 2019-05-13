@@ -61,6 +61,11 @@ public class MqClientProcessor extends AioBaseProcessor<Message> implements MqCl
     }
 
     @Override
+    public <V> void subscribe(String topic, Call<V> callBack) {
+        subscribe(topic, null, Message.Life.FOREVER, callBack);
+    }
+
+    @Override
     public <V> void subscribe(String topic, Message.Life life, Call<V> callBack) {
         subscribe(topic, null, life, callBack);
     }
