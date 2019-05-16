@@ -1,5 +1,5 @@
 com.artlongs.amq.disruptor;
-com.artlongs.amq.core.aio;
+com.artlongs.amq.core;
 com.artlongs.amq.tester;
 com.artlongs.amq.thinking;
 com.artlongs.amq.tools;

@@ -2,6 +2,7 @@ package amq.example.act;
 
 import com.artlongs.amq.core.*;
 
+import javax.inject.Singleton;
 import java.io.IOException;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.util.concurrent.ExecutionException;
@@ -11,6 +12,7 @@ import java.util.concurrent.ExecutionException;
  *
  * @author: leeton on 2019/4/1.
  */
+@Singleton
 public class AmqClient extends MqClientProcessor {
 
     public AmqClient() {
@@ -32,7 +34,7 @@ public class AmqClient extends MqClientProcessor {
     public static class Module extends org.osgl.inject.Module {
         @Override
         protected void configure() {
-            bind(MqClientAction.class).to(()->new AmqClient());
+            bind(MqClientAction.class).in(Singleton.class).to(()->new AmqClient());
         }
     }
 

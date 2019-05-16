@@ -38,8 +38,8 @@ public class TestRecv1 {
 
     private static void execBack(Message message) {
         long s = System.currentTimeMillis();
-        logger.debug(message.toString());
-        logger.debug("Useed Time(ms):"+(s-message.getStat().getCtime()));
+        logger.debug(message.getV().toString());
+//        logger.debug("Useed Time(ms):"+(s-message.getStat().getCtime()));
 
     }
 

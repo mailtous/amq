@@ -1,7 +1,10 @@
 package com.artlongs.amq.core;
 
 import com.artlongs.amq.core.aio.Protocol;
+import com.artlongs.amq.serializer.Fst;
 import com.artlongs.amq.serializer.ISerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 
@@ -11,8 +14,14 @@ import java.nio.ByteBuffer;
  * @author: leeton on 2019/2/22.
  */
 public class MqProtocol implements Protocol<Message> {
-   private static ISerializer serializer = ISerializer.Serializer.INST.of();
+    private static final Logger logger = LoggerFactory.getLogger(MqProtocol.class);
+
+    ISerializer serializer ;
     private static int INT_LENGTH = 4;
+
+    public MqProtocol() {
+        this.serializer = new Fst();
+    }
 
     @Override
     public ByteBuffer encode(Message message) {
@@ -26,19 +35,27 @@ public class MqProtocol implements Protocol<Message> {
 
     @Override
     public Message decode(ByteBuffer readBuffer) {
-        //识别消息长度
-        if (readBuffer.remaining() < INT_LENGTH) {
+        try {
+            //识别消息长度
+            if (readBuffer.remaining() < INT_LENGTH) {
+                return null;
+            }
+            //判断是否存在半包情况
+            int len = readBuffer.getInt(0);
+            if (readBuffer.remaining() < len || len<=0) {
+                logger.error("[AIO]消息不完整,buffer剩余长度:{},总长:{}",readBuffer.remaining(),len);
+                readBuffer.clear();
+                readBuffer = null;
+                return null;
+            }
+            readBuffer.getInt();//跳过length字段
+            byte[] bytes = new byte[len - INT_LENGTH];
+            readBuffer.get(bytes);
+            return serializer.getObj(bytes);
+        } catch (Exception e) {
+            logger.error("[AIO]处理消息出错: " + e.getMessage(), e);
             return null;
         }
-        //判断是否存在半包情况
-        int len = readBuffer.getInt(0);
-        if (readBuffer.remaining() < len) {
-            return null;
-        }
-        readBuffer.getInt();//跳过length字段
-        byte[] bytes = new byte[len - INT_LENGTH];
-        readBuffer.get(bytes);
-        return serializer.getObj(bytes);
     }
 
 

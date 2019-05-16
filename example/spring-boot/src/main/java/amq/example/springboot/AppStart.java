@@ -8,7 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 /**
  * @author leeon
  */
-@ComponentScan(basePackages = "com.artlongs")
+@ComponentScan(basePackages = "amq.example.springboot")
 @SpringBootApplication
 public class AppStart {
 

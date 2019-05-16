@@ -131,12 +131,7 @@ public class MqClientProcessor extends AioBaseProcessor<Message> implements MqCl
     }
 
     private boolean write(Message obj) {
-        CompletableFuture<Boolean> future = CompletableFuture.supplyAsync(() -> {
-            return this.pipe.write(obj);
-        });
-        Boolean send = future.join();
-
-        return send;
+        return this.pipe.write(obj);
     }
 
     @Override

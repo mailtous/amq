@@ -91,7 +91,7 @@ public class Message<K extends Message.Key, V> implements KV<K, V> {
         return message;
     }
 
-    public static <V> Message buildAcceptJob(String topic, Integer sendNode) {
+    public static Message buildAcceptJob(String topic, Integer sendNode) {
         Message.Key mKey = key(topic, sendNode);
         Message message = Message.ofAcceptJob(mKey);
         return message;
@@ -135,7 +135,7 @@ public class Message<K extends Message.Key, V> implements KV<K, V> {
         return ofDef(k, v).setLife(Life.ALL_ACKED).setListen(Listen.FUTURE_AND_ONCE).setType(Type.PUBLISH_JOB);
     }
 
-    private static <V> Message ofAcceptJob(Key k) {//实际上是一个订阅类别的消息
+    private static Message ofAcceptJob(Key k) {//实际上是一个订阅类别的消息
         return ofSubscribe(k, null, Life.ALL_ACKED, Listen.CALLBACK).setType(Type.ACCEPT_JOB);
     }
 

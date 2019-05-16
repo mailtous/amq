@@ -10,11 +10,10 @@ import org.nustaq.serialization.FSTConfiguration;
 
 import java.nio.ByteBuffer;
 
-public enum Fst implements ISerializer {
-    inst;
+public class Fst implements ISerializer {
     FSTConfiguration fst = FSTConfiguration.createDefaultConfiguration();
     FSTConfiguration fst_json = FSTConfiguration.createJsonConfiguration();
-    Fst() {
+    public Fst() {
         fst.registerClass(Message.class);
         fst.registerClass(Message.Stat.class);
         fst.registerClass(Message.Type.class);
@@ -63,7 +62,7 @@ public enum Fst implements ISerializer {
     }
 
     public static void main(String[] args) {
-        Fst fst = Fst.inst;
+        Fst fst = new Fst();
         Message msg = Message.buildCommonMessage("hello", new TestUser(1, "alice"), 127);
         byte[] jsonBytes = fst.toByte(msg);
         System.err.println(new String(jsonBytes));

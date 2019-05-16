@@ -28,7 +28,8 @@ public class HttpStart extends Thread implements Controller {
 
     @Get("/hello")
     public Render index() {
-        return Render.json("hello world.");
+
+        return Render.json("hello world!");
     }
 
     @Get("/user/{username}")

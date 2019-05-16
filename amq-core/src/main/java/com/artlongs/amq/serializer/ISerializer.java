@@ -16,11 +16,11 @@ public interface ISerializer {
     public <T> T getObj(ByteBuffer buffer, Class<T> clzz);
 
 
-    enum Serializer {
+    public static enum Serializer {
         INST;
 
         public ISerializer of() {
-            return Fst.inst;
+            return new Fst();
         }
     }
 }

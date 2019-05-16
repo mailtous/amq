@@ -73,7 +73,7 @@ public final class FastBlockingQueue {
                 notFull.await();
             }
             enqueue(buffer);
-            System.err.println("putindex="+putIndex);
+//            System.err.println("putindex="+putIndex);
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {

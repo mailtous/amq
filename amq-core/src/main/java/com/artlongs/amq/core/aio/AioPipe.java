@@ -13,7 +13,6 @@ import java.nio.channels.ReadPendingException;
 import java.nio.channels.WritePendingException;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -225,15 +224,7 @@ public class AioPipe<T> implements Serializable {
     }
 
     private void readedAndUnLock() {
-        if (readBuffer.remaining() == 0) {
-            readBuffer.clear();
-        } else if (readBuffer.position() > 0) {
-            // 仅当发生数据读取时调用compact,减少内存拷贝
-            readBuffer.compact();
-        } else {
-            readBuffer.position(readBuffer.limit());
-            readBuffer.limit(readBuffer.capacity());
-        }
+        readBuffer.clear();
         readSemaphore.release();
     }
 
