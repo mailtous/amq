@@ -14,6 +14,7 @@ import java.util.Set;
 @SuppressWarnings("unchecked")
 public class Message<K extends Message.Key, V> implements KV<K, V> {
     private static final long serialVersionUID = 1L;
+    public static final String BACK = "back"; // 任务的回复 TOPIC 标示
 
     ////=============================================
     private Key k;
@@ -25,7 +26,7 @@ public class Message<K extends Message.Key, V> implements KV<K, V> {
     private Type type;
 
     ////=============================================
-    public static <V> Message ofDef(Key k, V v) {
+    public static Message ofDef(Key k, Object v) {
         long now = System.currentTimeMillis();
         Message m = new Message();
         m.k = k;
@@ -97,8 +98,8 @@ public class Message<K extends Message.Key, V> implements KV<K, V> {
         return message;
     }
 
-    public static <V> Message buildFinishJob(String jobId, String topic, V v, Integer sendNode) {
-        String jobTopic = buildFinishJobTopic(jobId, topic);
+    public static <V> Message buildFinishJob(String topic, V v, Integer sendNode) {
+        String jobTopic = buildFinishJobTopic(topic);
         Message.Key mKey = key(jobTopic, sendNode);
         Message message = Message.ofFinishJob(mKey, v);
         return message;
@@ -117,13 +118,11 @@ public class Message<K extends Message.Key, V> implements KV<K, V> {
 
     /**
      * 任务结果的TOPIC
-     *
-     * @param providerMsgId 实际上是任务发布者的 MsgId
-     * @param oldTopic      原来的 TOPIC
+     * @param oldTopic  原来的 TOPIC
      * @return
      */
-    public static String buildFinishJobTopic(String providerMsgId, String oldTopic) {
-        return providerMsgId + "_" + oldTopic;
+    public static String buildFinishJobTopic(String oldTopic) {
+        return BACK + "_" + oldTopic;
     }
 
     private static <V> Message ofSubscribe(Key k, V v, Life life, Listen listen) {
@@ -136,7 +135,7 @@ public class Message<K extends Message.Key, V> implements KV<K, V> {
     }
 
     private static Message ofAcceptJob(Key k) {//实际上是一个订阅类别的消息
-        return ofSubscribe(k, null, Life.ALL_ACKED, Listen.CALLBACK).setType(Type.ACCEPT_JOB);
+        return ofSubscribe(k, null, Life.FOREVER, Listen.CALLBACK).setType(Type.ACCEPT_JOB);
     }
 
     private static <V> Message ofFinishJob(Key k, V v) {

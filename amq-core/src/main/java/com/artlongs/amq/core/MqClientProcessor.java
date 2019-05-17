@@ -86,10 +86,10 @@ public class MqClientProcessor extends AioBaseProcessor<Message> implements MqCl
         write(job);
         Message result = futureResultMap.get(jobId).join();
         if (null != result) {
-            removeFutureResultMap(result.getSubscribeId());
             if (MqConfig.inst.mq_auto_acked) {
                 ack(result.getSubscribeId());
             }
+            removeFutureResultMap(result.getSubscribeId());
         }
 
         return result;
@@ -102,9 +102,9 @@ public class MqClientProcessor extends AioBaseProcessor<Message> implements MqCl
         callBackMap.put(subscribe.getSubscribeId(), acceptJobThenExecute);
     }
 
-    public <V> boolean finishJob(String topic, V v, String acceptJobId) {
+    public <V> boolean finishJob(String topic, V v) {
         try {
-            Message<Message.Key, V> finishJob = Message.buildFinishJob(acceptJobId, topic, v, getNode());
+            Message<Message.Key, V> finishJob = Message.buildFinishJob(topic, v, getNode());
             return write(finishJob);
         } catch (Exception e) {
             e.printStackTrace();
@@ -131,7 +131,13 @@ public class MqClientProcessor extends AioBaseProcessor<Message> implements MqCl
     }
 
     private boolean write(Message obj) {
+        if (this.pipe.isClose()) {
+            reConnetion();
+        }
         return this.pipe.write(obj);
+    }
+    private void reConnetion(){
+        this.pipe = this.pipe.reBuild();
     }
 
     @Override

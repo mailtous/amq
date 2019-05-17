@@ -27,7 +27,7 @@ public class TestPong {
                 System.err.println(job);// 收到的 JOB
                 // 完成任务 JOB
                 if (user.getId().equals(job.getV())) {
-                    processor.<TestUser>finishJob(jobTopc, user,job.getK().getId());
+                    processor.<TestUser>finishJob(jobTopc, user);
                 }
             }
         });

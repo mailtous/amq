@@ -3,21 +3,25 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
-        <groupId>com.artlongs.amq</groupId>
         <artifactId>example</artifactId>
+        <groupId>com.artlongs.amq</groupId>
         <version>0.0.1-snapshot</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
-
     <artifactId>act</artifactId>
     <version>0.0.1-snapshot</version>
 
     <properties>
         <app.entry>amq.example.act.AppStart</app.entry>
-        <act.version>1.8.19</act.version>
+        <act.version>1.8.21</act.version>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -25,8 +29,8 @@
             <artifactId>act</artifactId>
             <version>${act.version}</version>
 
-            <exclusions>
-<!--                <exclusion>
+<!--            <exclusions>
+                <exclusion>
                     <groupId>org.osgl</groupId>
                     <artifactId>osgl-tool</artifactId>
                 </exclusion>
@@ -37,16 +41,16 @@
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-api</artifactId>
-                </exclusion>-->
-            </exclusions>
+                </exclusion>
+            </exclusions>-->
         </dependency>
 
             <!-- AMQ -->
-            <dependency>
-                <groupId>com.artlongs.amq</groupId>
-                <artifactId>amq-core</artifactId>
-                <version>0.0.1-snapshot</version>
-            </dependency>
+        <dependency>
+            <groupId>com.github.mailtous.amq</groupId>
+            <artifactId>amq-core</artifactId>
+            <version>0.0.1-snapshot</version>
+        </dependency>
 
     </dependencies>
 

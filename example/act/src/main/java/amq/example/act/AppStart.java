@@ -11,7 +11,7 @@ public class AppStart {
 
 
     /**
-     * 启动项目前.请先运行MQ 服务器: {@link com.artlongs.amq.core.AioMqServer}
+     * 启动项目前.请先运行MQ 服务器: {@link com.artlongs.amq.tester.MqStart}
      * @param args
      * @throws Exception
      */

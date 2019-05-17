@@ -41,6 +41,9 @@ public class AioClient<T> implements Runnable {
      */
     private AsynchronousChannelGroup asynchronousChannelGroup;
 
+    private AsynchronousSocketChannel socketChannel;
+
+
     /**
      * 当前构造方法设置了启动Aio客户端的必要参数，基本实现开箱即用。
      *
@@ -69,7 +72,7 @@ public class AioClient<T> implements Runnable {
      * @see {@link AsynchronousSocketChannel#connect(SocketAddress)}
      */
     public AioPipe<T> start(AsynchronousChannelGroup asynchronousChannelGroup) throws IOException, ExecutionException, InterruptedException {
-        AsynchronousSocketChannel socketChannel = AsynchronousSocketChannel.open(asynchronousChannelGroup);
+        this.socketChannel = AsynchronousSocketChannel.open(asynchronousChannelGroup);
         //set socket options
         if (config.getSocketOptions() != null) {
             for (SocketOption option :config.getSocketOptions()) {
@@ -83,7 +86,21 @@ public class AioClient<T> implements Runnable {
         //连接成功则构造AIOSession对象
         pipe = new AioPipe<>(socketChannel, config);
         pipe.initSession();
+        pipe.setAioClient(this);
         logger.warn("amq-socket client started on {} {}", config.getHost(), config.getPort());
+        return pipe;
+    }
+
+    public AioPipe<T> reConnetion(){
+        try {
+            AioPipe pipe = start(asynchronousChannelGroup);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return pipe;
     }
 

@@ -47,12 +47,12 @@ public enum ProcessorImpl implements Processor {
     /**
      * 发布的工作任务缓存
      **/
-    private ConcurrentSkipListMap<String, Message> cache_public_job = new ConcurrentSkipListMap();
+    private static ConcurrentSkipListMap<String, Message> cache_public_job = new ConcurrentSkipListMap();
 
     /**
      * 订阅的缓存 RingBufferQueue(Subscribe)
      */
-    private RingBufferQueue<Subscribe> cache_subscribe = new RingBufferQueue<>(MqConfig.inst.mq_subscribe_quene_cache_sizes);
+    private static RingBufferQueue<Subscribe> cache_subscribe = new RingBufferQueue<>(MqConfig.inst.mq_subscribe_quene_cache_sizes);
 
     // ringBuffer cap setting
     private final int WORKER_BUFFER_SIZE = 1024 * 32;
@@ -75,7 +75,6 @@ public enum ProcessorImpl implements Processor {
     private Disruptor mqDisruptor;
 
     private static boolean shutdowNow = false; // 关闭服务
-
     private MonitorPlugin monitor;
 
     ProcessorImpl() {
@@ -159,12 +158,19 @@ public enum ProcessorImpl implements Processor {
                     }else {
                         incrCommonSubscribe();
                     }
+                    //
                     return;
+
                 } else {
-                    if (isPublishJob(message)) { // 发布的消息为新的工作任务(pingpong)
+                    if (isPublishJob(message)) { // 发布的消息为工作任务(pingpong)
                         incrPublishJob();
-                        buildSubscribeWaitingJobResult(pipe, message);
                         cachePubliceJobMessage(msgId, message);
+                        buildSubscribeWaitingJobResult(pipe, message);
+                        Subscribe acceptor = getSubscribe(message.getK().getTopic());
+                        if (null != acceptor) { // 本任务已经有订阅者
+                            sendMessageToSubcribe(message,acceptor);
+                            return;
+                        }
                     }else {
                         incrCommonPublish();
                         cacheCommonPublishMessage(msgId, message);
@@ -262,13 +268,24 @@ public enum ProcessorImpl implements Processor {
      */
     private boolean buildSubscribeWaitingJobResult(AioPipe pipe, Message message) {
         String jobId = message.getK().getId();
-        String jobTopc = Message.buildFinishJobTopic(jobId, message.getK().getTopic());
+        String jobTopc = Message.buildFinishJobTopic(message.getK().getTopic());
         Subscribe subscribe = new Subscribe(jobId, jobTopc, pipe.getId(), message.getLife(), message.getListen(), System.currentTimeMillis());
         RingBufferQueue.Result result = cache_subscribe.putIfAbsent(subscribe);
         if (result.success) {
             subscribe.setIdx(result.index);
         }
         return true;
+    }
+
+    private Subscribe getSubscribe(String topic) {
+        Iterator<Subscribe> subscribes = cache_subscribe.iterator();
+        while (subscribes.hasNext()) {
+            Subscribe listen = subscribes.next();
+            if (null != listen && listen.getTopic().startsWith(topic)) {
+                return listen;
+            }
+        }
+        return null;
     }
 
     /**
@@ -377,9 +394,13 @@ public enum ProcessorImpl implements Processor {
                 return true;
             }
             if (getPipeBy(subscribe.getPipeId()).isClose()) {
-                cache_subscribe.remove(subscribe.getIdx());
-                logger.warn("remove subscribe on pipe ({}) is CLOSED.", subscribe.getPipeId());
-                return true;
+                if(Message.Life.FOREVER != subscribe.getLife()){
+                    cache_subscribe.remove(subscribe.getIdx());
+                    logger.warn("remove subscribe on pipe ({}) is CLOSED.", subscribe.getPipeId());
+                    return true;
+                }
+                return false;
+
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -445,6 +466,10 @@ public enum ProcessorImpl implements Processor {
 
     public void removeCacheOfDone(String key) {
         cache_common_publish_message.remove(key);
+        cache_falt_message.remove(key);
+    }
+    public void removePublishJobOfAcked(String key) {
+        cache_public_job.remove(key);
         cache_falt_message.remove(key);
     }
 

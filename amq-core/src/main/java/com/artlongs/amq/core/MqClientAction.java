@@ -67,11 +67,9 @@ public interface MqClientAction {
      *
      * @param topic
      * @param v           执行结果
-     * @param acceptJobId 收到的工作任务ID(messageId)
-     * @param <V>
      * @return
      */
-    <V> boolean finishJob(String topic, V v, String acceptJobId);
+    <V> boolean finishJob(String topic, V v);
 
     /**
      * 确认收到消息(签收)

@@ -47,6 +47,9 @@ public class AioPipe<T> implements Serializable {
     protected AsynchronousSocketChannel channel;
     private Object attachment; //附件对象(通常传输文件才用得到)
 
+    private AioClient aioClient;
+
+
     public AioPipe() {
     }
 
@@ -391,6 +394,14 @@ public class AioPipe<T> implements Serializable {
     public AioPipe<T> setAttachment(Object attachment) {
         this.attachment = attachment;
         return this;
+    }
+
+    public void setAioClient(AioClient aioClient) {
+        this.aioClient = aioClient;
+    }
+
+    public AioPipe reBuild(){
+       return this.aioClient.reConnetion();
     }
 
     /**
