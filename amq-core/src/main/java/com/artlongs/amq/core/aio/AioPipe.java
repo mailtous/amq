@@ -400,7 +400,8 @@ public class AioPipe<T> implements Serializable {
         this.aioClient = aioClient;
     }
 
-    public AioPipe reBuild(){
+    public AioPipe reConnetion(){
+        readedAndUnLock();
        return this.aioClient.reConnetion();
     }
 

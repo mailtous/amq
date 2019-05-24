@@ -1,6 +1,7 @@
 package com.artlongs.amq.serializer;
 
 
+import com.artlongs.amq.core.BaseMessage;
 import com.artlongs.amq.core.Message;
 import com.artlongs.amq.core.Subscribe;
 import com.artlongs.amq.http.Render;
@@ -14,6 +15,8 @@ public class Fst implements ISerializer {
     FSTConfiguration fst = FSTConfiguration.createDefaultConfiguration();
     FSTConfiguration fst_json = FSTConfiguration.createJsonConfiguration();
     public Fst() {
+        fst.registerClass(BaseMessage.class);
+        fst.registerClass(BaseMessage.HeadMessage.class);
         fst.registerClass(Message.class);
         fst.registerClass(Message.Stat.class);
         fst.registerClass(Message.Type.class);

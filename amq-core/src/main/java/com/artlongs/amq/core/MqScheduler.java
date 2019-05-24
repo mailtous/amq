@@ -46,8 +46,6 @@ public enum MqScheduler {
      * 服务器重启了,恢复之前的订阅
      */
     private void resumeJobOnServerStart(){
-
-        //TODO: RECONNETION
         RingBufferQueue<Subscribe> cache_subscribe = ProcessorImpl.INST.getCache_subscribe();
         List<Subscribe> retryList = Store.INST.getAll(IStore.mq_subscribe, Subscribe.class);
         for (Subscribe o : retryList) {

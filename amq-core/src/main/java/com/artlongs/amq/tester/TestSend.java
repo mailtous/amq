@@ -21,7 +21,7 @@ public class TestSend {
         AioMqClient<Message> client = new AioMqClient(MqConfig.inst.host, MqConfig.inst.port, new MqProtocol(), processor);
         client.start(channelGroup);
 
-        runWithNums(processor,30);
+        runWithNums(processor, 1);
 //
 //        runWithTimes(processor, 10);
 
@@ -32,7 +32,7 @@ public class TestSend {
         for (int i = 0; i < nums; i++) { // 测试时,最好把 aioServer.setWriteQueueSize 的大小设置为 >= 测试次数
 //            Thread.sleep(2,500);
             TestUser user = new TestUser(i, "alice");
-            processor.publish("topic_hello", user);
+            processor.publish("topic_hello", user, Message.Life.SPARK);
             System.err.println("send : " + user.toString());
         }
         System.err.println("Time(ms):" + (System.currentTimeMillis() - s));
@@ -45,7 +45,7 @@ public class TestSend {
         while (System.currentTimeMillis() - s < end) {
             Thread.sleep(0, 500);
             TestUser user = new TestUser(++i, "alice");
-            processor.publish("topic_hello", user);
+            processor.publish("topic_hello", user, Message.Life.SPARK);
         }
         System.err.println("Time(ms):" + (System.currentTimeMillis() - s));
     }

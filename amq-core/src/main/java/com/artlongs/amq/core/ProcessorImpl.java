@@ -173,7 +173,9 @@ public enum ProcessorImpl implements Processor {
                         }
                     }else {
                         incrCommonPublish();
-                        cacheCommonPublishMessage(msgId, message);
+                        if (Message.Life.SPARK != message.getLife()) {
+                            cacheCommonPublishMessage(msgId, message);
+                        }
                     }
                     // 发布消息
                     publishJobToWorker(message);
@@ -216,10 +218,12 @@ public enum ProcessorImpl implements Processor {
     }
 
     private void tiggerStoreSubscribeToDb(RingBuffer<JobEvent> ringBuffer, Subscribe subscribe) {
+        if (Message.Life.SPARK == subscribe.getLife()) return;
         ringBuffer.publishEvent(JobEvent::translate, subscribe);
     }
 
     private void tiggerStoreComonMessageToDb(RingBuffer<JobEvent> ringBuffer, Message message) {
+        if (Message.Life.SPARK == message.getLife()) return;
         ringBuffer.publishEvent(JobEvent::translate, message);
     }
 
@@ -315,7 +319,7 @@ public enum ProcessorImpl implements Processor {
      */
     public void sendMessageToSubcribe(Message message, List<Subscribe> subscribeList) {
         for (Subscribe subscribe : subscribeList) {
-            if (isPipeClosedThenRemove(subscribe)) {
+            if (isPipeClosed(subscribe)) {
                 continue;
             }
             // 当客户端全部 ACK,则 remove 掉缓存
@@ -347,7 +351,11 @@ public enum ProcessorImpl implements Processor {
     }
 
     private boolean write(AioPipe pipe, Message message) {
-        return pipe.write(message);
+        BaseMessage baseMessage = new BaseMessage();
+        BaseMessage.HeadMessage head = new BaseMessage.HeadMessage(BaseMsgType.BYTE_ARRAY_MESSAGE_REQ);
+        baseMessage.setHead(head);
+        baseMessage.setBody(message);
+        return pipe.write(baseMessage);
     }
 
     /**
@@ -381,26 +389,19 @@ public enum ProcessorImpl implements Processor {
     }
 
     /**
-     * 通道失效,移除对应的订阅
-     *
-     * @param subscribe
-     * @return
+     * 通道失效
      */
-    private boolean isPipeClosedThenRemove(Subscribe subscribe) {
+    private boolean isPipeClosed(Subscribe subscribe) {
         try {
             if (null == subscribe.getPipeId()) {
-                cache_subscribe.remove(subscribe.getIdx());
-                logger.warn("remove subscribe when pipeId is null ." + subscribe);
                 return true;
             }
-            if (getPipeBy(subscribe.getPipeId()).isClose()) {
-                if(Message.Life.FOREVER != subscribe.getLife()){
-                    cache_subscribe.remove(subscribe.getIdx());
-                    logger.warn("remove subscribe on pipe ({}) is CLOSED.", subscribe.getPipeId());
-                    return true;
-                }
-                return false;
-
+            AioPipe pipe = getPipeBy(subscribe.getPipeId());
+            if (null == pipe) {
+                return true;
+            }
+            if (pipe.isClose()) {
+                return true;
             }
         } catch (Exception e) {
             e.printStackTrace();

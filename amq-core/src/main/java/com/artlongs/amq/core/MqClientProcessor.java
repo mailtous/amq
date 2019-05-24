@@ -16,21 +16,22 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author: leeton on 2019/2/25.
  */
-public class MqClientProcessor extends AioBaseProcessor<Message> implements MqClientAction {
+public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements MqClientAction {
     private static Logger logger = LoggerFactory.getLogger(MqClientProcessor.class);
 
-    private AioPipe<Message> pipe;
+    private AioPipe<BaseMessage> pipe;
     private static Map<String, Call> callBackMap = new ConcurrentHashMap<>(); //客户端返回的消息包装
     private static Map<String, CompletableFuture<Message>> futureResultMap = new ConcurrentHashMap<>(); //客户端返回的消息包装(仅一次)
     //
 
     @Override
-    public void process0(AioPipe<Message> pipe, Message message) {
+    public void process0(AioPipe<BaseMessage> pipe, BaseMessage message) {
         prcessMsg(message);
     }
 
-    private void prcessMsg(Message message) {
+    private void prcessMsg(BaseMessage baseMessage) {
         try {
+            Message message = baseMessage.getBody();
             if (null != message) {
                 String subscribeId = message.getSubscribeId();
                 if (C.notEmpty(callBackMap) && null != callBackMap.get(subscribeId)) {
@@ -53,6 +54,17 @@ public class MqClientProcessor extends AioBaseProcessor<Message> implements MqCl
     public <M> boolean publish(String topic, M data) {
         try {
             Message message = Message.buildCommonMessage(topic, data, getNode());
+            return write(message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public <M> boolean publish(String topic, M data,Message.Life life) {
+        try {
+            Message message = Message.buildCommonMessage(topic, data, getNode());
+            message.setLife(life);
             return write(message);
         } catch (Exception e) {
             e.printStackTrace();
@@ -130,18 +142,22 @@ public class MqClientProcessor extends AioBaseProcessor<Message> implements MqCl
         }
     }
 
-    private boolean write(Message obj) {
+    private boolean write(Message message) {
         if (this.pipe.isClose()) {
             reConnetion();
         }
-        return this.pipe.write(obj);
+        BaseMessage baseMessage = new BaseMessage();
+        BaseMessage.HeadMessage head = new BaseMessage.HeadMessage(BaseMsgType.BYTE_ARRAY_MESSAGE_REQ);
+        baseMessage.setHead(head);
+        baseMessage.setBody(message);
+        return this.pipe.write(baseMessage);
     }
     private void reConnetion(){
-        this.pipe = this.pipe.reBuild();
+        this.pipe = this.pipe.reConnetion();
     }
 
     @Override
-    public void stateEvent0(AioPipe<Message> pipe, State state, Throwable throwable) {
+    public void stateEvent0(AioPipe<BaseMessage> pipe, State state, Throwable throwable) {
         switch (state) {
             case NEW_PIPE:
                 this.pipe = pipe;

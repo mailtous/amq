@@ -16,6 +16,8 @@ public interface MqClientAction {
      */
     <V> boolean publish(String topic, V v);
 
+    <V> boolean publish(String topic, V v,Message.Life life);
+
     /**
      * 普通的订阅消息(默认存活周期为 {@link Message.Life#FOREVER} )
      *
