@@ -6,7 +6,7 @@
     <parent>
         <artifactId>example</artifactId>
         <groupId>com.artlongs.amq</groupId>
-        <version>0.0.1-snapshot</version>
+        <version>0.0.2-snapshot</version>
     </parent>
 
     <artifactId>spring-boot</artifactId>
@@ -22,7 +22,7 @@
         <dependency>
             <groupId>com.artlongs.amq</groupId>
             <artifactId>amq-core</artifactId>
-            <version>0.0.1-snapshot</version>
+            <version>0.0.2-snapshot</version>
         </dependency>
     </dependencies>
 

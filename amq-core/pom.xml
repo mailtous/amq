@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.artlongs.amq</groupId>
         <artifactId>amq-parent</artifactId>
-        <version>0.0.1-snapshot</version>
+        <version>0.0.2-snapshot</version>
         <relativePath>../amq-parent/pom.xml</relativePath>
     </parent>
 
@@ -16,7 +16,7 @@
     <name>amq-core</name>
     <groupId>com.artlongs.amq</groupId>
     <artifactId>amq-core</artifactId>
-    <version>0.0.1-snapshot</version>
+    <version>0.0.2-snapshot</version>
 
     <profiles>
         <profile>

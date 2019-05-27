@@ -6,10 +6,10 @@
     <parent>
         <artifactId>example</artifactId>
         <groupId>com.artlongs.amq</groupId>
-        <version>0.0.1-snapshot</version>
+        <version>0.0.2-snapshot</version>
     </parent>
     <artifactId>act</artifactId>
-    <version>0.0.1-snapshot</version>
+    <version>0.0.2-snapshot</version>
 
     <properties>
         <app.entry>amq.example.act.AppStart</app.entry>
@@ -49,7 +49,7 @@
         <dependency>
             <groupId>com.github.mailtous.amq</groupId>
             <artifactId>amq-core</artifactId>
-            <version>0.0.1-snapshot</version>
+            <version>0.0.2-snapshot</version>
         </dependency>
 
     </dependencies>

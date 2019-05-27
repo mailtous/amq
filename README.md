@@ -28,7 +28,7 @@ Aio的源码来源于 smart-socket(https://github.com/smartboot/smart-socket) ,�
 <dependency>
     <groupId>com.github.mailtous</groupId>
     <artifactId>amq-core</artifactId>
-    <version>0.0.1-snapshot</version>
+    <version>0.0.2-snapshot</version>
 </dependency>
 ```
 
