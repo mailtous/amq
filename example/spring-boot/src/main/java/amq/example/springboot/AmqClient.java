@@ -20,6 +20,7 @@ public class AmqClient extends MqClientProcessor {
             final int threadSize = MqConfig.inst.client_connect_thread_pool_size;
             AsynchronousChannelGroup channelGroup = AsynchronousChannelGroup.withFixedThreadPool(threadSize, (r)->new Thread(r));
             AioMqClient<Message> client = new AioMqClient(new MqProtocol(), this);
+            client.setBreakReconnect(5000); //设置断链重连的时间周期
             client.start(channelGroup);
 
         } catch (IOException e) {

@@ -153,7 +153,7 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
         return this.pipe.write(baseMessage);
     }
     private void reConnetion(){
-        this.pipe = this.pipe.reConnetion();
+        this.pipe = this.pipe.reConnect();
     }
 
     @Override

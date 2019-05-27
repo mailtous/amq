@@ -18,7 +18,7 @@ public class MqServerProcessor extends AioBaseProcessor<BaseMessage> {
     public void process0(AioPipe<BaseMessage> pipe, BaseMessage baseMessage) {
         if(BaseMessage.isHeart(baseMessage.getHead())){
           if(pipe.isClose()){
-              pipe.reConnetion();
+              pipe.reConnect();
           }
         }else {
             directSend(pipe, baseMessage.getBody());

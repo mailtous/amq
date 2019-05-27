@@ -10,16 +10,16 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Func : 心跳检测
+ * Func : 客户端存活检测
  *
  * @author: leeton on 2019/3/11.
  */
-public class HeartPlugin extends QuickTimerTask {
-    private static final Logger logger = LoggerFactory.getLogger(HeartPlugin.class);
+public class ChannelAliveCheckPlugin extends QuickTimerTask {
+    private static final Logger logger = LoggerFactory.getLogger(ChannelAliveCheckPlugin.class);
 
     private ConcurrentHashMap<Integer,AioPipe> channelAliveMap = null;
 
-    public HeartPlugin(ConcurrentHashMap<Integer,AioPipe>channelAliveMap ) {
+    public ChannelAliveCheckPlugin(ConcurrentHashMap<Integer,AioPipe>channelAliveMap ) {
         this.channelAliveMap = channelAliveMap;
     }
 

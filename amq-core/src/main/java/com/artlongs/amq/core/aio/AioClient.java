@@ -1,5 +1,6 @@
 package com.artlongs.amq.core.aio;
 
+import com.artlongs.amq.core.aio.plugin.ClientReconectPlugin;
 import com.artlongs.amq.core.aio.plugin.Plugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,12 +89,15 @@ public class AioClient<T> implements Runnable {
         pipe.initSession();
         pipe.setAioClient(this);
         logger.warn("amq-socket client started on {} {}", config.getHost(), config.getPort());
+        new ClientReconectPlugin(pipe,config,asynchronousChannelGroup);
+
         return pipe;
     }
 
-    public AioPipe<T> reConnetion(){
+    public AioPipe<T> reConnect(AsynchronousChannelGroup asynchronousChannelGroup){
         try {
-            AioPipe pipe = start(asynchronousChannelGroup);
+          pipe = start(asynchronousChannelGroup);
+          pipe.setStatus(AioPipe.ENABLED);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
@@ -185,10 +189,6 @@ public class AioClient<T> implements Runnable {
         return this;
     }
 
-    public AioServerConfig<T> getConfig() {
-        return config;
-    }
-
     public AioPipe<T> getPipe() {
         return pipe;
     }
@@ -204,8 +204,17 @@ public class AioClient<T> implements Runnable {
         }
     }
 
+    public void setBreakReconnect(long periodMs) {
+        this.config.setBreakReconnect(periodMs);
+    }
+
     @Override
     public void run() {
         // nothing to do 只是方便运行在守护模式
     }
+
+    public AsynchronousChannelGroup getAsynchronousChannelGroup() {
+        return asynchronousChannelGroup;
+    }
+
 }

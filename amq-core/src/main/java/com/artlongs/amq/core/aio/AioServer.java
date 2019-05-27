@@ -68,7 +68,7 @@ public class AioServer<T> implements Runnable {
         config.setProtocol(protocol);
         config.setProcessor(messageProcessor);
         if (checkAlive) {//运行检测心跳
-            new HeartPlugin(this.channelAliveMap).run();
+            new ChannelAliveCheckPlugin(this.channelAliveMap).run();
         }
     }
 

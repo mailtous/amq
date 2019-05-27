@@ -61,6 +61,8 @@ public class AioServerConfig<T> {
      */
     private boolean bannerEnabled = true;
 
+    private long clinet_break_reconnect_period_ms=5000;
+
     public AioServerConfig(boolean isServer) {
         this.isServer = isServer;
     }
@@ -152,6 +154,14 @@ public class AioServerConfig<T> {
         this.bannerEnabled = bannerEnabled;
         return this;
     }
+
+    public void setBreakReconnect(long periodMs) {
+        this.clinet_break_reconnect_period_ms = periodMs;
+    }
+    public long getBreakReconnect() {
+        return this.clinet_break_reconnect_period_ms;
+    }
+
 
     public void setSocketOptions(SocketOption option) {
         this.socketOptions.add(option);

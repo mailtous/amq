@@ -400,9 +400,13 @@ public class AioPipe<T> implements Serializable {
         this.aioClient = aioClient;
     }
 
-    public AioPipe reConnetion(){
+    public AioClient getAioClient() {
+        return aioClient;
+    }
+
+    public AioPipe reConnect(){
         readedAndUnLock();
-       return this.aioClient.reConnetion();
+       return this.aioClient.reConnect(this.aioClient.getAsynchronousChannelGroup());
     }
 
     /**
@@ -423,6 +427,10 @@ public class AioPipe<T> implements Serializable {
             Thread.currentThread().interrupt();
             e.printStackTrace();
         }
+    }
+
+    public void setStatus(byte status) {
+        this.status = status;
     }
 
     @Override

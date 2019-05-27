@@ -320,6 +320,8 @@ public enum ProcessorImpl implements Processor {
     public void sendMessageToSubcribe(Message message, List<Subscribe> subscribeList) {
         for (Subscribe subscribe : subscribeList) {
             if (isPipeClosed(subscribe)) {
+                removeSubscribeOfCache(subscribe);
+                removeSubscribeOfDB(subscribe.getId());
                 continue;
             }
             // 当客户端全部 ACK,则 remove 掉缓存

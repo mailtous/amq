@@ -21,7 +21,7 @@ public class TestSend {
         AioMqClient<Message> client = new AioMqClient(MqConfig.inst.host, MqConfig.inst.port, new MqProtocol(), processor);
         client.start(channelGroup);
 
-        runWithNums(processor, 1);
+        runWithNums(processor, 10);
 //
 //        runWithTimes(processor, 10);
 
