@@ -286,7 +286,8 @@ public enum ProcessorImpl implements Processor {
         while (subscribes.hasNext()) {
             Subscribe listen = subscribes.next();
             if (null != listen && listen.getTopic().startsWith(topic)) {
-                return listen;
+                AioPipe pipe = getPipeBy(listen.getPipeId());
+                if(null != pipe && pipe.isOpen()) return listen;
             }
         }
         return null;

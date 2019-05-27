@@ -180,7 +180,10 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
     }
 
     private Integer getNode() {
-        return this.pipe.getId();
+        if(null != this.pipe){
+            return this.pipe.getId();
+        }
+        return -1;
     }
 
 
