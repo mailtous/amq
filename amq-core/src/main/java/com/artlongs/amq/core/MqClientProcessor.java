@@ -23,10 +23,22 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
     private static Map<String, Call> callBackMap = new ConcurrentHashMap<>(); //客户端返回的消息包装
     private static Map<String, CompletableFuture<Message>> futureResultMap = new ConcurrentHashMap<>(); //客户端返回的消息包装(仅一次)
     //
+    private static String firstPipeId = "";
 
     @Override
     public void process0(AioPipe<BaseMessage> pipe, BaseMessage message) {
-        prcessMsg(message);
+        if(BaseMsgType.RE_CONNECT_RSP == message.getHead().getBaseMsgType()){ //服务端-->断线重连
+            String pipeId = new String(message.getHead().getInclude()).trim();
+            if (firstPipeId == "") { //第一次,保存最初的pipeID
+                logger.warn("服务端-->最初的pipeID:{}",pipeId);
+                firstPipeId = pipeId;
+            }else { // 第二次以上说明是服务器重启了,需要更换 pipeId
+                sendReplacePipeId(pipe, firstPipeId, pipeId);
+                firstPipeId = pipeId;
+            }
+        }else {
+            prcessMsg(message);
+        }
     }
 
     private void prcessMsg(BaseMessage baseMessage) {
@@ -48,6 +60,18 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
         } catch (Exception e) {
             logger.error("[C] Client prcess decode exception: ", e);
         }
+    }
+    /**
+     * 发送更换 PIPEID 的消息
+     * @param aioPipe
+     */
+    private void sendReplacePipeId(AioPipe aioPipe, String oldPipeId,String newPipeid) {
+        logger.warn("服务器重启过了,更换PIPEID: {} -> {} ",oldPipeId,newPipeid);
+        byte[] includeInfo = (oldPipeId+","+newPipeid).getBytes();
+        BaseMessage baseMessage = new BaseMessage();
+        BaseMessage.HeadMessage head = new BaseMessage.HeadMessage(BaseMsgType.RE_CONNECT_REQ, includeInfo);
+        baseMessage.setHead(head);
+        aioPipe.write(baseMessage);
     }
 
     @Override

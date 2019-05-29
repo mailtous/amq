@@ -1,6 +1,11 @@
 package com.artlongs.amq.core.aio;
 
-import com.artlongs.amq.core.aio.plugin.*;
+import com.artlongs.amq.core.BaseMessage;
+import com.artlongs.amq.core.BaseMsgType;
+import com.artlongs.amq.core.aio.plugin.IpPlugin;
+import com.artlongs.amq.core.aio.plugin.Monitor;
+import com.artlongs.amq.core.aio.plugin.MonitorPlugin;
+import com.artlongs.amq.core.aio.plugin.Plugin;
 import com.artlongs.amq.tools.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,9 +72,9 @@ public class AioServer<T> implements Runnable {
         config.setPort(port);
         config.setProtocol(protocol);
         config.setProcessor(messageProcessor);
-        if (checkAlive) {//运行检测心跳
+/*        if (checkAlive) {//运行检测心跳
             new ChannelAliveCheckPlugin(this.channelAliveMap).run();
-        }
+        }*/
     }
 
     @Override
@@ -169,6 +174,7 @@ public class AioServer<T> implements Runnable {
 //            System.err.println("create pipid = "+ pipe.getId());
             if (null != pipe) {
                 channelAliveMap.putIfAbsent(pipe.getId(), pipe);
+                sendPipeIdToClient(pipe);
             }
         } catch (Exception e1) {
             LOGGER.debug(e1.getMessage(), e1);
@@ -194,6 +200,17 @@ public class AioServer<T> implements Runnable {
 
         }
         return pipe;
+    }
+
+    /**
+     * 把通道ID 回传到client
+     * @param pipe
+     */
+    private void sendPipeIdToClient(AioPipe pipe) {
+        BaseMessage baseMessage = new BaseMessage();
+        BaseMessage.HeadMessage head = new BaseMessage.HeadMessage(BaseMsgType.RE_CONNECT_RSP, String.valueOf(pipe.getId()).getBytes());
+        baseMessage.setHead(head);
+        pipe.write(baseMessage);
     }
 
     /**

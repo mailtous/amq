@@ -24,11 +24,11 @@ public interface BaseMsgType {
 	/** 鉴权响应 */
 	int LOGIN_AUTH_RSP = RESPONSE_MESSAGE | 0x2;
 
-	/** 断连请求 */
-	int DIS_CONNECT_REQ = REQUEST_MESSAGE | 0x3;
+	/** 断链重连请求 */
+	int RE_CONNECT_REQ = REQUEST_MESSAGE | 0x3;
 
-	/** 断连响应 */
-	int DIS_CONNECT_RSP = RESPONSE_MESSAGE | 0x3;
+	/** 断链重连响应 */
+	int RE_CONNECT_RSP = RESPONSE_MESSAGE | 0x3;
 
 	/** 探测消息REQ */
 	int DETECT_MESSAGE_REQ = REQUEST_MESSAGE | 0x4;

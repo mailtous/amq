@@ -3,6 +3,8 @@ package com.artlongs.amq.core;
 import com.artlongs.amq.core.aio.AioBaseProcessor;
 import com.artlongs.amq.core.aio.AioPipe;
 import com.artlongs.amq.core.aio.State;
+import org.osgl.util.C;
+import org.osgl.util.S;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,10 +18,16 @@ public class MqServerProcessor extends AioBaseProcessor<BaseMessage> {
 
     @Override
     public void process0(AioPipe<BaseMessage> pipe, BaseMessage baseMessage) {
-        if(BaseMessage.isHeart(baseMessage.getHead())){
-          if(pipe.isClose()){
-              pipe.reConnect();
-          }
+        if(BaseMessage.isReConnectReq(baseMessage.getHead())){
+            byte[] includeByte = baseMessage.getHead().getInclude();
+            String includeStr = new String(includeByte).trim();
+            C.List<String> pipeIds = S.split(includeStr, ",");
+            Integer oldPipeId = Integer.valueOf(pipeIds.get(0)==null?"0":pipeIds.get(0));
+            Integer newPipeId =Integer.valueOf(pipeIds.get(1)==null?"0":pipeIds.get(1));
+            if (oldPipeId>0 && newPipeId >0) {
+                logger.debug(" Request to replace pipeid :{}-{}",oldPipeId,newPipeId);
+                ProcessorImpl.INST.replacePipeIdOnReconnect(oldPipeId, newPipeId);
+            }
         }else {
             directSend(pipe, baseMessage.getBody());
         }

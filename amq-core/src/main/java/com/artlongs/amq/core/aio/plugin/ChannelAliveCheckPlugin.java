@@ -25,12 +25,12 @@ public class ChannelAliveCheckPlugin extends QuickTimerTask {
 
     @Override
     protected long getDelay() {
-        return 5;
+        return 50;
     }
 
     @Override
     protected long getPeriod() {
-        return 30; // 30秒,检查一次
+        return 30*1000; // 30秒,检查一次
     }
 
     @Override
@@ -38,9 +38,6 @@ public class ChannelAliveCheckPlugin extends QuickTimerTask {
         remove();
     }
 
-    /**
-     * 心跳检测
-     */
     private synchronized void remove() {
         if(!channelAliveMap.isEmpty()){
             final Set<Integer> removeSet = new HashSet<>();

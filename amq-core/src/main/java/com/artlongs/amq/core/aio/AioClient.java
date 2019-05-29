@@ -44,7 +44,6 @@ public class AioClient<T> implements Runnable {
 
     private AsynchronousSocketChannel socketChannel;
 
-
     /**
      * 当前构造方法设置了启动Aio客户端的必要参数，基本实现开箱即用。
      *
@@ -73,13 +72,14 @@ public class AioClient<T> implements Runnable {
      * @see {@link AsynchronousSocketChannel#connect(SocketAddress)}
      */
     public AioPipe<T> start(AsynchronousChannelGroup asynchronousChannelGroup) throws IOException, ExecutionException, InterruptedException {
+        this.asynchronousChannelGroup = asynchronousChannelGroup;
         this.socketChannel = AsynchronousSocketChannel.open(asynchronousChannelGroup);
         //set socket options
         if (config.getSocketOptions() != null) {
-            for (SocketOption option :config.getSocketOptions()) {
-                socketChannel.setOption(option,option.type());
+            for (SocketOption option : config.getSocketOptions()) {
+                socketChannel.setOption(option, option.type());
             }
-        }else {
+        } else {
             setDefSocketOptions(socketChannel);
         }
         //bind host
@@ -88,16 +88,16 @@ public class AioClient<T> implements Runnable {
         pipe = new AioPipe<>(socketChannel, config);
         pipe.initSession();
         pipe.setAioClient(this);
-        logger.warn("amq-socket client started on {} {}", config.getHost(), config.getPort());
-        new ClientReconectPlugin(pipe,config,asynchronousChannelGroup);
-
+        new ClientReconectPlugin(pipe);
+        logger.warn("amq-socket client started on {} {}, pipeId:{}", config.getHost(), config.getPort(),pipe.getId());
         return pipe;
     }
 
-    public AioPipe<T> reConnect(AsynchronousChannelGroup asynchronousChannelGroup){
+
+    public synchronized AioPipe<T> reConnect() {
         try {
-          pipe = start(asynchronousChannelGroup);
-          pipe.setStatus(AioPipe.ENABLED);
+            pipe = start(this.asynchronousChannelGroup);
+            pipe.setStatus(AioPipe.ENABLED);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
@@ -107,6 +107,7 @@ public class AioClient<T> implements Runnable {
         }
         return pipe;
     }
+
 
     /**
      * 启动客户端。
@@ -193,7 +194,7 @@ public class AioClient<T> implements Runnable {
         return pipe;
     }
 
-    private void setDefSocketOptions(AsynchronousSocketChannel socketChannel){
+    private void setDefSocketOptions(AsynchronousSocketChannel socketChannel) {
         try {
             socketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
             socketChannel.setOption(StandardSocketOptions.SO_RCVBUF, 32 * 1024);

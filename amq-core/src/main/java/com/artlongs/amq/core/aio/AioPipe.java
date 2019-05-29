@@ -406,7 +406,7 @@ public class AioPipe<T> implements Serializable {
 
     public AioPipe reConnect(){
         readedAndUnLock();
-       return this.aioClient.reConnect(this.aioClient.getAsynchronousChannelGroup());
+       return this.aioClient.reConnect();
     }
 
     /**

@@ -630,4 +630,32 @@ public enum ProcessorImpl implements Processor {
         }
     }
 
+    /**
+     * 更换已经失效的 PIPEID
+     * @param oldPipeId
+     * @param pipeId
+     */
+    public void replacePipeIdOnReconnect(Integer oldPipeId, Integer pipeId) {
+//        logger.debug("更换已经失效的PIPE:{} -> {}", oldPipeId, pipeId);
+        List<Subscribe> retryList = IStore.instOf().getAll(IStore.mq_subscribe, Subscribe.class);
+        if (C.notEmpty(retryList)) {
+            for (Subscribe subscribe : retryList) {
+                cache_subscribe.putIfAbsent(subscribe);
+                if(oldPipeId.equals(subscribe.getPipeId())){
+                    subscribe.setPipeId(pipeId);
+                    IStore.instOf().remove(IStore.mq_subscribe,subscribe.getId());
+                    IStore.instOf().save(IStore.mq_subscribe,subscribe.getId(), subscribe);
+                }
+            }
+        }
+        //
+        Iterator<Subscribe> iterator = cache_subscribe.iterator();
+        while (iterator.hasNext()) {
+            Subscribe subscribe = iterator.next();
+            if(oldPipeId.equals(subscribe.getPipeId())){
+                subscribe.setPipeId(pipeId);
+            }
+        }
+
+    }
 }
