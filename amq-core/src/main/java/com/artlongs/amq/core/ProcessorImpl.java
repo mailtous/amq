@@ -18,10 +18,7 @@ import org.osgl.util.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutorService;
 
@@ -656,6 +653,9 @@ public enum ProcessorImpl implements Processor {
                 subscribe.setPipeId(pipeId);
             }
         }
+
+        //
+        AioServer.removeChannelOfAliveMap(oldPipeId);
 
     }
 }

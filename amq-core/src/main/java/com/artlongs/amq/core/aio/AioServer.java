@@ -18,6 +18,8 @@ import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -342,5 +344,21 @@ public class AioServer<T> implements Runnable {
     public static ConcurrentHashMap<Integer, AioPipe> getChannelAliveMap() {
         return channelAliveMap;
     }
+
+    public static void removeChannelOfAliveMap(Integer pipeId) {
+        final Set<Integer> removeSet = new HashSet<>();
+        for (Integer key : AioServer.getChannelAliveMap().keySet()) {
+            if (key.equals(pipeId)) {
+                AioPipe pipe = AioServer.getChannelAliveMap().get(key);
+                if(null != pipe && !pipe.getChannel().isOpen()){
+                    removeSet.add(key);
+                }
+            }
+        }
+        for (Integer key : removeSet) {
+            AioServer.getChannelAliveMap().remove(key);
+        }
+    }
+
 
 }

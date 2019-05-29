@@ -43,9 +43,8 @@ public class ChannelAliveCheckPlugin extends QuickTimerTask {
             final Set<Integer> removeSet = new HashSet<>();
             for (Integer key : channelAliveMap.keySet()) {
                 AioPipe pipe = channelAliveMap.get(key);
-                if(null != pipe && pipe.getChannel().isOpen()){
+                if(null != pipe && !pipe.getChannel().isOpen()){
                     removeSet.add(key);
-                    pipe.close(false);
                     logger.warn("Client pipe ({}) is closed, remove now!",pipe.getId());
                 }
             }
