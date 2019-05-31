@@ -8,28 +8,35 @@ import java.util.List;
  * @author: leeton on 2019/3/13.
  */
 public interface IStore {
-    static IStore instOf(){//预留有其它持久化实现的可能
-        return Store.INST;
+    static IStore ofServer(){//预留有其它持久化实现的可能
+        return ServerStore.INST;
     }
 
     /**
-     * 所有的数据备份(感觉没有必要)
+     * 服务端所有的 MQ 数据备份(感觉没有必要)
      */
-    String mq_all_data = "mq_all_data.db";
+    String server_mq_all_data = "server_mq_all_data.db";
 
     /**
-     * 需要重发的数据备份
+     * 服务端需要重发的数据备份
      */
-    String mq_need_retry = "mq_need_retry.db";
+    String server_mq_need_retry = "server_mq_need_retry.db";
     /**
-     * 订阅者数据备份
+     * 服务端订阅者数据备份
      */
-    String mq_subscribe = "mq_subscribe.db";
+    String server_mq_subscribe = "server_mq_subscribe.db";
 
     /**
-     * 生产者消息备份
+     * 服务端生产者消息备份
      */
-    String mq_common_publish = "mq_common_publish_message.db";
+    String server_mq_common_publish = "server_mq_common_publish_message.db";
+
+    /**
+     * 客户端订阅者数据备份
+     */
+    String client_mq_subscribe = "client_mq_subscribe.db";
+
+
 
     <T> boolean save(String dbName,String key, T obj);
 

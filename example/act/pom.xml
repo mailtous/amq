@@ -46,8 +46,13 @@
         </dependency>
 
             <!-- AMQ -->
-        <dependency>
+ <!--       <dependency>
             <groupId>com.github.mailtous.amq</groupId>
+            <artifactId>amq-core</artifactId>
+            <version>0.0.2-snapshot</version>
+        </dependency>-->
+        <dependency>
+            <groupId>com.artlongs.amq</groupId>
             <artifactId>amq-core</artifactId>
             <version>0.0.2-snapshot</version>
         </dependency>

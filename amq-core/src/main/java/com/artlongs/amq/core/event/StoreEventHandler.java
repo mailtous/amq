@@ -23,20 +23,20 @@ public class StoreEventHandler implements WorkHandler<JobEvent> {
         if(event.isStoreAllMsg()){ // 开启了保存所有消息
             if (message != null) {
                 logger.debug("[MQ]执行消息保存到硬盘(ALL) ......");
-                IStore.instOf().save(IStore.mq_all_data, message.getK().getId(), message);
+                IStore.ofServer().save(IStore.server_mq_all_data, message.getK().getId(), message);
             }
         }else {
             if (message != null) {
                 String dbName = getDbNameByMsgType(message);
                 if (S.noBlank(dbName)) {
                     logger.debug("[MQ]执行消息保存到硬盘({}).",dbName);
-                    IStore.instOf().save(dbName,message.getK().getId(), message);
+                    IStore.ofServer().save(dbName,message.getK().getId(), message);
                 }
             }
             Subscribe subscribe = event.getSubscribe();
             if (subscribe != null) {
                 logger.debug("[MQ]执行消息保存到硬盘(subscribe) ......");
-                IStore.instOf().save(IStore.mq_subscribe,subscribe.getId(), subscribe);
+                IStore.ofServer().save(IStore.server_mq_subscribe,subscribe.getId(), subscribe);
             }
         }
 
@@ -48,13 +48,13 @@ public class StoreEventHandler implements WorkHandler<JobEvent> {
             case ACK:
                 break;
             case SUBSCRIBE:
-                return IStore.mq_subscribe;
+                return IStore.server_mq_subscribe;
             case PUBLISH:
-                return IStore.mq_common_publish;
+                return IStore.server_mq_common_publish;
             case PUBLISH_JOB:
-                return IStore.mq_common_publish;
+                return IStore.server_mq_common_publish;
             case ACCEPT_JOB:
-                return IStore.mq_subscribe;
+                return IStore.server_mq_subscribe;
 
         }
         return dbName;

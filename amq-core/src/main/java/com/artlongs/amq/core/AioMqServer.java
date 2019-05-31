@@ -36,6 +36,7 @@ public class AioMqServer {
             AioServer<ByteBuffer> aioServer = new AioServer(MqConfig.inst.host, MqConfig.inst.port, new MqProtocol(), new MqServerProcessor());
             aioServer.startCheckAlive(MqConfig.inst.start_check_client_alive);
             aioServer.startMonitorPlugin(MqConfig.inst.start_flow_monitor);
+            aioServer.setResumeSubcribe(true);
             //
             pool.submit(aioServer);
             aioServer.start();

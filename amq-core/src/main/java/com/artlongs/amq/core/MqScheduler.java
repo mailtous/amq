@@ -1,7 +1,6 @@
 package com.artlongs.amq.core;
 
 import com.artlongs.amq.core.store.IStore;
-import com.artlongs.amq.core.store.Store;
 import com.artlongs.amq.tools.RingBufferQueue;
 import org.osgl.util.C;
 import org.slf4j.Logger;
@@ -47,7 +46,7 @@ public enum MqScheduler {
      */
     private void resumeJobOnServerStart(){
         RingBufferQueue<Subscribe> cache_subscribe = ProcessorImpl.INST.getCache_subscribe();
-        List<Subscribe> retryList = Store.INST.getAll(IStore.mq_subscribe, Subscribe.class);
+        List<Subscribe> retryList = IStore.ofServer().getAll(IStore.server_mq_subscribe, Subscribe.class);
         for (Subscribe o : retryList) {
             cache_subscribe.putIfAbsent(o);
         }
@@ -67,7 +66,7 @@ public enum MqScheduler {
 
                     RingBufferQueue<Subscribe> cache_subscribe = ProcessorImpl.INST.getCache_subscribe();
                     if (cache_subscribe.isEmpty()) { // 从 DB 恢复所有订阅
-                        List<Subscribe> retryList = Store.INST.getAll(IStore.mq_subscribe, Subscribe.class);
+                        List<Subscribe> retryList = IStore.ofServer().getAll(IStore.server_mq_subscribe, Subscribe.class);
                         for (Subscribe o : retryList) {
                             cache_subscribe.putIfAbsent(o);
                         }
@@ -75,7 +74,7 @@ public enum MqScheduler {
 
                     ConcurrentSkipListMap<String, Message> cache_common_publish_message = ProcessorImpl.INST.getCache_common_publish_message();
                     if (C.isEmpty(cache_common_publish_message)) { //  从 DB 恢复所有未确认的消息
-                        List<Message> retryList = Store.INST.getAll(IStore.mq_all_data, Message.class);
+                        List<Message> retryList = IStore.ofServer().getAll(IStore.server_mq_all_data, Message.class);
                         for (Message o : retryList) {
                             cache_common_publish_message.putIfAbsent(o.getK().getId(), o);
                         }
@@ -107,7 +106,7 @@ public enum MqScheduler {
                 if (MqConfig.inst.start_msg_falt_message_resend) {
                     ConcurrentSkipListMap<String, Message> cache_falt_message = ProcessorImpl.INST.getCache_falt_message();
                     if (C.isEmpty(cache_falt_message)) {
-                        List<Message> retryList = Store.INST.getAll(IStore.mq_need_retry, Message.class);
+                        List<Message> retryList = IStore.ofServer().getAll(IStore.server_mq_need_retry, Message.class);
                         for (Message o : retryList) {
                             cache_falt_message.putIfAbsent(o.getK().getId(), o);
                         }
@@ -136,17 +135,17 @@ public enum MqScheduler {
             public void run() {
                 ConcurrentSkipListMap<String, Message> cache_common_publish_message = ProcessorImpl.INST.getCache_common_publish_message();
 
-                final List<Message> retryList = Store.INST.getAll(IStore.mq_need_retry, Message.class);
+                final List<Message> retryList = IStore.ofServer().getAll(IStore.server_mq_need_retry, Message.class);
                 for (Message o : retryList) {
                     cache_common_publish_message.putIfAbsent(o.getK().getId(), o);
                 }
                 //
-                final List<Message> allDataList = Store.INST.getAll(IStore.mq_all_data, Message.class);
+                final List<Message> allDataList = IStore.ofServer().getAll(IStore.server_mq_all_data, Message.class);
                 for (Message o : allDataList) {
                     cache_common_publish_message.putIfAbsent(o.getK().getId(), o);
                 }
                 //
-                final List<Message> commonPlulishList = Store.INST.getAll(IStore.mq_common_publish, Message.class);
+                final List<Message> commonPlulishList = IStore.ofServer().getAll(IStore.server_mq_common_publish, Message.class);
                 for (Message o : commonPlulishList) {
                     cache_common_publish_message.putIfAbsent(o.getK().getId(), o);
                 }
@@ -165,7 +164,7 @@ public enum MqScheduler {
 
                 // 订阅方的消息--过期删除
                 RingBufferQueue<Subscribe> cache_subscribe = ProcessorImpl.INST.getCache_subscribe();
-                final List<Subscribe> subscribeList = Store.INST.getAll(IStore.mq_subscribe, Subscribe.class);
+                final List<Subscribe> subscribeList = IStore.ofServer().getAll(IStore.server_mq_subscribe, Subscribe.class);
                 for (Subscribe o : subscribeList) {
                     cache_subscribe.putIfAbsent(o);
                 }

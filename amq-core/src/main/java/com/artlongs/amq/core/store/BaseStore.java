@@ -1,57 +1,35 @@
 package com.artlongs.amq.core.store;
 
 import com.artlongs.amq.core.Message;
-import com.artlongs.amq.core.MqConfig;
 import com.artlongs.amq.core.Subscribe;
 import com.artlongs.amq.serializer.ISerializer;
 import com.artlongs.amq.tools.FastList;
-import com.artlongs.amq.tools.ID;
 import org.mapdb.BTreeMap;
 import org.mapdb.DB;
-import org.mapdb.DBMaker;
 import org.mapdb.Serializer;
 import org.mapdb.serializer.GroupSerializer;
 import org.osgl.util.C;
 import org.osgl.util.S;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
  * Func :
  *
- * @author: leeton on 2019/2/18.
+ * @author: leeton on 2019/5/29.
  */
-public enum Store implements IStore {
-    INST;
+public abstract class BaseStore implements IStore {
     ISerializer serializer = ISerializer.Serializer.INST.of();
+    protected final static String DEF_TREEMAP_NAME = "amqdata";
+    protected static Map<Integer, List> filterListCache = new ConcurrentHashMap<>();
 
-    private HashMap<String, DB> db = new HashMap<>();
-    // MQ 收到的所有数据
-    private BTreeMap<String, byte[]> all_data = markMap(IStore.mq_all_data, Serializer.BYTE_ARRAY);
-    // 需要重发的 MQ 数据
-    private BTreeMap<String, byte[]> need_retry = markMap(IStore.mq_need_retry, Serializer.BYTE_ARRAY);
-    private BTreeMap<String, byte[]> mq_subscribe = markMap(IStore.mq_subscribe, Serializer.BYTE_ARRAY);
-    private BTreeMap<String, byte[]> mq_common_publish = markMap(IStore.mq_common_publish, Serializer.BYTE_ARRAY);
-
-    private final static String DEF_TREEMAP_NAME = "amqdata";
-    private static Map<Integer, List> filterListCache = new ConcurrentHashMap<>();
-
-    public DB markDb(String dbName) {
-        DB _db = DBMaker.fileDB(MqConfig.inst.mq_db_store_file_path + dbName)
-                .fileMmapEnableIfSupported()
-                .fileMmapPreclearDisable()
-                .allocateIncrement(1024)
-                .cleanerHackEnable()
-                .closeOnJvmShutdown()
-                .transactionEnable()
-                .concurrencyScale(128)
-                .make();
-
-        db.put(dbName, _db);
-        return _db;
-    }
+    abstract DB markDb(String dbName);
+    abstract DB getDB(String dbName);
 
     public BTreeMap markMap(String dbName, GroupSerializer seriaType) {
         BTreeMap<String, byte[]> myMap = markDb(dbName).treeMap(DEF_TREEMAP_NAME)
@@ -63,13 +41,9 @@ public enum Store implements IStore {
         return myMap;
     }
 
-    public BTreeMap getMapBy(String dbName) {
+    private BTreeMap getMapBy(String dbName) {
         BTreeMap map = getDB(dbName).treeMap(DEF_TREEMAP_NAME).open();
         return map;
-    }
-
-    private DB getDB(String dbName) {
-        return db.get(dbName);
     }
 
 
@@ -102,6 +76,7 @@ public enum Store implements IStore {
         return list;
     }
 
+    @Override
     public <T> List<T> list(String dbName, int pageNumber, int pageSize, Class<T> tClass) {
         FastList<T> result = new FastList<>(tClass, 200_000);
         FastList<T> allList = getAll(dbName, tClass);
@@ -117,6 +92,7 @@ public enum Store implements IStore {
         return result;
     }
 
+    @Override
     public <T> Page<T> getPage(String dbName, Condition<T> topicFilter, Condition<T> timeFilter, Page page, Class<T> tClass) {
         List<T> result = new ArrayList<>(1000);
         // filter of page
@@ -124,6 +100,13 @@ public enum Store implements IStore {
 
         return page;
     }
+
+    @Override
+    public void remove(String dbName, String key) {
+        getMapBy(dbName).remove(key);
+        getDB(dbName).commit();
+    }
+
 
     private <T> void filterByPage(Page page, List<T> oldList) {
         int total = oldList.size();
@@ -163,6 +146,7 @@ public enum Store implements IStore {
         return filteredList;
     }
 
+
     /**
      * 删除缓存的结果集
      *
@@ -178,11 +162,6 @@ public enum Store implements IStore {
         }
     }
 
-    @Override
-    public void remove(String dbName, String key) {
-        getMapBy(dbName).remove(key);
-        getDB(dbName).commit();
-    }
 
 
     private String getTopic(Object obj) {
@@ -199,14 +178,5 @@ public enum Store implements IStore {
         list.clear();
         list = null;
     }
-
-
-    public static void main(String[] args) {
-        Message msg = Message.ofDef(new Message.Key(ID.ONLY.id(), "hello"), "hello,world!");
-        Store.INST.save(IStore.mq_all_data, msg.getK().getId(), msg);
-        System.err.println(Store.INST.<Message>get(IStore.mq_all_data, msg.getK().getId(), Message.class));
-        System.err.println(Store.INST.<Message>getAll(IStore.mq_all_data, Message.class));
-    }
-
 
 }

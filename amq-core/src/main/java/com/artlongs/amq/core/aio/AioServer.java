@@ -59,6 +59,7 @@ public class AioServer<T> implements Runnable {
     private static ConcurrentHashMap<Integer, AioPipe> channelAliveMap = new ConcurrentHashMap<>(2000);
 
     private boolean checkAlive = false;
+    private boolean resumeSubcribe = false;
 
     private MonitorPlugin monitor;
 
@@ -176,7 +177,9 @@ public class AioServer<T> implements Runnable {
 //            System.err.println("create pipid = "+ pipe.getId());
             if (null != pipe) {
                 channelAliveMap.putIfAbsent(pipe.getId(), pipe);
-                sendPipeIdToClient(pipe);
+                if(resumeSubcribe){
+                    sendPipeIdToClient(pipe);
+                }
             }
         } catch (Exception e1) {
             LOGGER.debug(e1.getMessage(), e1);
@@ -320,6 +323,14 @@ public class AioServer<T> implements Runnable {
         return this;
     }
 
+    public boolean isResumeSubcribe() {
+        return resumeSubcribe;
+    }
+
+    public void setResumeSubcribe(boolean resumeSubcribe) {
+        this.resumeSubcribe = resumeSubcribe;
+    }
+
     public AioServer<T> startMonitorPlugin(boolean tf) {
         if (tf){
             this.monitor = new MonitorPlugin();
@@ -327,6 +338,7 @@ public class AioServer<T> implements Runnable {
         }
         return this;
     }
+
 
     public MonitorPlugin getMonitor() {
         return monitor;

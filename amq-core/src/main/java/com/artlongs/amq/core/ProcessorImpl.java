@@ -430,7 +430,7 @@ public enum ProcessorImpl implements Processor {
         incrSendFail();
         message.getStat().setOn(Message.ON.SENDONFAIL);
         String id = message.getK().getId();
-        IStore.instOf().save(IStore.mq_need_retry, id, message);
+        IStore.ofServer().save(IStore.server_mq_need_retry, id, message);
         cache_common_publish_message.remove(id);
         cache_falt_message.putIfAbsent(id, message);
     }
@@ -475,9 +475,9 @@ public enum ProcessorImpl implements Processor {
     }
 
     public void removeDbDataOfDone(String key) {
-        IStore.instOf().remove(IStore.mq_all_data, key);
-        IStore.instOf().remove(IStore.mq_need_retry, key);
-        IStore.instOf().remove(IStore.mq_common_publish, key);
+        IStore.ofServer().remove(IStore.server_mq_all_data, key);
+        IStore.ofServer().remove(IStore.server_mq_need_retry, key);
+        IStore.ofServer().remove(IStore.server_mq_common_publish, key);
     }
 
     private void removeSubscribeCacheOnAck(String ackId) {
@@ -501,7 +501,7 @@ public enum ProcessorImpl implements Processor {
     }
 
     public void removeSubscribeOfDB(String subscribeId) {
-        IStore.instOf().remove(IStore.mq_subscribe, subscribeId);
+        IStore.ofServer().remove(IStore.server_mq_subscribe, subscribeId);
     }
 
     private boolean isPublishJob(Message message) {
@@ -634,14 +634,14 @@ public enum ProcessorImpl implements Processor {
      */
     public void replacePipeIdOnReconnect(Integer oldPipeId, Integer pipeId) {
 //        logger.debug("更换已经失效的PIPE:{} -> {}", oldPipeId, pipeId);
-        List<Subscribe> retryList = IStore.instOf().getAll(IStore.mq_subscribe, Subscribe.class);
+        List<Subscribe> retryList = IStore.ofServer().getAll(IStore.server_mq_subscribe, Subscribe.class);
         if (C.notEmpty(retryList)) {
             for (Subscribe subscribe : retryList) {
                 cache_subscribe.putIfAbsent(subscribe);
                 if(oldPipeId.equals(subscribe.getPipeId())){
                     subscribe.setPipeId(pipeId);
-                    IStore.instOf().remove(IStore.mq_subscribe,subscribe.getId());
-                    IStore.instOf().save(IStore.mq_subscribe,subscribe.getId(), subscribe);
+                    IStore.ofServer().remove(IStore.server_mq_subscribe,subscribe.getId());
+                    IStore.ofServer().save(IStore.server_mq_subscribe,subscribe.getId(), subscribe);
                 }
             }
         }

@@ -6,7 +6,6 @@ import com.artlongs.amq.core.aio.plugin.MonitorPlugin;
 import com.artlongs.amq.core.store.Condition;
 import com.artlongs.amq.core.store.IStore;
 import com.artlongs.amq.core.store.Page;
-import com.artlongs.amq.core.store.Store;
 import com.artlongs.amq.http.BaseController;
 import com.artlongs.amq.http.Render;
 import com.artlongs.amq.http.routes.Get;
@@ -44,7 +43,7 @@ public class QueryController extends BaseController {
     @Get("/topic/q")
     public Render topicQurey(String topic, Date begin, Date end, int pageNumber, int pageSize) {
         Page<Message> page = new Page(pageNumber, pageSize);
-        page = Store.INST.<Message>getPage(IStore.mq_common_publish,
+        page = IStore.ofServer().getPage(IStore.server_mq_common_publish,
                 new Condition<Message>(s -> s.getK().getTopic().startsWith(topic)),
                 new Condition<Message>(s -> s.getStat().getCtime() >= begin.getTime() && s.getStat().getCtime() <= end.getTime()),
                 page, Message.class);
