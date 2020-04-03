@@ -36,10 +36,10 @@ public enum ID {
         //数字长度为longs位，长度不够数字前面补0
         String format = "%0"+ Integer.valueOf(longs).toString().length()+"d";
         StringBuffer ymd = getYmdId();
-        BigInteger currentTimes = new BigInteger(ymd.append(getNewAutoNum(longs,format)).toString());
+        BigInteger currentTimes = getCurrentTimes(ymd, longs, format);
         while (currentTimes.compareTo(lastTimestamp)==-1) {
             ymd=getYmdId();
-            currentTimes = new BigInteger(ymd.append(getNewAutoNum(longs,format)).toString());
+            currentTimes = getCurrentTimes(ymd, longs, format);
         }
 
         //上次生成ID的时间截
@@ -48,12 +48,16 @@ public enum ID {
         return String.valueOf(currentTimes);
     }
 
+    private BigInteger getCurrentTimes(StringBuffer ymd,int longs,String format){
+        return new BigInteger(ymd.append(getNewAutoNum(longs, format)).toString());
+    }
+
     /**
      * 生成原子顺序数字
      * @param longs 原子顺序数的长度
      * @return
      */
-    public String getNewAutoNum(int longs,String format){
+    private String getNewAutoNum(int longs,String format){
         //线程安全的原子操作，所以此方法无需同步
         int newNum = atomicNum.incrementAndGet();
         if(atomicNum.get()>longs){
