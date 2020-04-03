@@ -70,7 +70,7 @@ public class Message<K extends Message.Key, V> implements KV<K, V> {
      * @return
      */
     public static String createId(String clientId) {
-        String id = clientId + ID.ONLY.id();
+        String id = clientId + ID.ONLY.id(ID.atomic_num_two);
         return id;
     }
 
