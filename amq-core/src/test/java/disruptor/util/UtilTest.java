@@ -15,8 +15,8 @@
  */
 package disruptor.util;
 
-import com.artlongs.amq.disruptor.Sequence;
-import com.artlongs.amq.disruptor.util.Util;
+import com.artfii.amq.disruptor.Sequence;
+import com.artfii.amq.disruptor.util.Util;
 import org.junit.Assert;
 import org.junit.Test;
 

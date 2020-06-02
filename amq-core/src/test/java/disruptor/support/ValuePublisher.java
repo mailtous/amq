@@ -16,7 +16,7 @@
 package disruptor.support;
 
 
-import com.artlongs.amq.disruptor.RingBuffer;
+import com.artfii.amq.disruptor.RingBuffer;
 
 import java.util.concurrent.CyclicBarrier;
 

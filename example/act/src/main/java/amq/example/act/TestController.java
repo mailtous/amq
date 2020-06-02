@@ -1,9 +1,9 @@
 package amq.example.act;
 
 import act.controller.Controller;
-import com.artlongs.amq.core.Message;
-import com.artlongs.amq.core.MqClientAction;
-import com.artlongs.amq.tester.TestUser;
+import com.artfii.amq.core.Message;
+import com.artfii.amq.core.MqClientAction;
+import com.artfii.amq.tester.TestUser;
 import org.osgl.mvc.annotation.GetAction;
 
 import javax.inject.Inject;

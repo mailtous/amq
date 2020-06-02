@@ -1,7 +1,7 @@
 package disruptor;
 
-import com.artlongs.amq.disruptor.RingBuffer;
-import com.artlongs.amq.disruptor.dsl.Disruptor;
+import com.artfii.amq.disruptor.RingBuffer;
+import com.artfii.amq.disruptor.dsl.Disruptor;
 
 import java.nio.ByteBuffer;
 import java.util.Date;

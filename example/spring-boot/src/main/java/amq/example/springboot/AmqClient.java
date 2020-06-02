@@ -1,6 +1,6 @@
 package amq.example.springboot;
 
-import com.artlongs.amq.core.*;
+import com.artfii.amq.core.*;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;

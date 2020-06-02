@@ -6,13 +6,13 @@
     <packaging>pom</packaging>
 
     <parent>
-        <groupId>com.artlongs.amq</groupId>
+        <groupId>com.artfii.amq</groupId>
         <artifactId>amq-parent</artifactId>
         <version>0.0.2-snapshot</version>
         <relativePath>../amq-parent/pom.xml</relativePath>
     </parent>
 
-    <groupId>com.artlongs.amq</groupId>
+    <groupId>com.artfii.amq</groupId>
     <artifactId>example</artifactId>
     <version>0.0.2-snapshot</version>
 

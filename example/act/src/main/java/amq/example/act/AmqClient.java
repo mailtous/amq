@@ -1,6 +1,6 @@
 package amq.example.act;
 
-import com.artlongs.amq.core.*;
+import com.artfii.amq.core.*;
 
 import javax.inject.Singleton;
 import java.io.IOException;

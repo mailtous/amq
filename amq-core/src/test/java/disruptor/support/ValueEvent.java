@@ -16,7 +16,7 @@
 package disruptor.support;
 
 
-import com.artlongs.amq.disruptor.EventFactory;
+import com.artfii.amq.disruptor.EventFactory;
 
 public final class ValueEvent
 {

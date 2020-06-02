@@ -1,8 +1,8 @@
 package amq.example.springboot;
 
-import com.artlongs.amq.core.Message;
-import com.artlongs.amq.core.MqClientAction;
-import com.artlongs.amq.tester.TestUser;
+import com.artfii.amq.core.Message;
+import com.artfii.amq.core.MqClientAction;
+import com.artfii.amq.tester.TestUser;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

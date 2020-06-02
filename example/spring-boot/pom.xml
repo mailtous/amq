@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>example</artifactId>
-        <groupId>com.artlongs.amq</groupId>
+        <groupId>com.artfii.amq</groupId>
         <version>0.0.2-snapshot</version>
     </parent>
 
@@ -20,7 +20,7 @@
         </dependency>
         <!-- AMQ -->
         <dependency>
-            <groupId>com.artlongs.amq</groupId>
+            <groupId>com.artfii.amq</groupId>
             <artifactId>amq-core</artifactId>
             <version>0.0.2-snapshot</version>
         </dependency>

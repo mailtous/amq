@@ -6,7 +6,7 @@
     <packaging>jar</packaging>
 
     <parent>
-        <groupId>com.artlongs.amq</groupId>
+        <groupId>com.artfii.amq</groupId>
         <artifactId>amq-parent</artifactId>
         <version>0.0.2-snapshot</version>
         <relativePath>../amq-parent/pom.xml</relativePath>
@@ -14,7 +14,7 @@
 
     <!---->
     <name>amq-core</name>
-    <groupId>com.artlongs.amq</groupId>
+    <groupId>com.artfii.amq</groupId>
     <artifactId>amq-core</artifactId>
     <version>0.0.2-snapshot</version>
 
@@ -88,7 +88,7 @@
                 </executions>
                 <configuration>
                     <executable>java</executable>
-                    <!--<mainClass>com.artlongs.amq.core.AioMqServer</mainClass>-->
+                    <!--<mainClass>com.artfii.amq.core.AioMqServer</mainClass>-->
                 </configuration>
             </plugin>
         </plugins>

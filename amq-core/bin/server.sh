@@ -2,10 +2,10 @@
 clear
 
 mvn clean compile -DskipTests=true -f pom.xml -P prod
-#mvn exec:exec -Dexec.executable="java" -Dexec.args="-DsystemProperty1=value1 -DsystemProperty2=value2 -XX:MaxPermSize=256m -classpath %classpath com.artlongs.amq.core.AioMqServer"
+#mvn exec:exec -Dexec.executable="java" -Dexec.args="-DsystemProperty1=value1 -DsystemProperty2=value2 -XX:MaxPermSize=256m -classpath %classpath com.artfii.amq.core.AioMqServer"
 #mvn exec:exec
 #cd target/classes/com/artlongs/amq/core
-mvn exec:java -Dexec.mainClass="com.artlongs.amq.core.AioMqServer" -Dexec.classpathScope=runtime
+mvn exec:java -Dexec.mainClass="com.artfii.amq.core.AioMqServer" -Dexec.classpathScope=runtime
 
 #ps -ef | grep java | grep -v grepcl
 # kill 进程
