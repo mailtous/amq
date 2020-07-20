@@ -7,19 +7,43 @@
 
     <parent>
         <groupId>com.artfii.amq</groupId>
-        <artifactId>artlongs-amq</artifactId>
-        <version>0.0.2-snapshot</version>
+        <artifactId>artfii-amq</artifactId>
+        <version>0.0.3-snapshot</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <groupId>com.artfii.amq</groupId>
     <artifactId>amq-parent</artifactId>
-    <version>${amq.version}</version>
+    <version>0.0.3-snapshot</version>
 
     <modules>
         <module>../amq-core</module>
         <module>../amq-pro</module>
         <module>../example</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>prod</id>
+            <properties>
+                <profile.env>prod</profile.env>
+            </properties>
+        </profile>
+        <profile>
+            <id>test</id>
+            <properties>
+                <profile.env>test</profile.env>
+            </properties>
+        </profile>
+        <profile>
+            <id>dev</id>
+            <properties>
+                <profile.env>dev</profile.env>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+    </profiles>
 
     <properties>
         <jdk.version>1.8</jdk.version>

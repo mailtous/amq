@@ -1,12 +1,14 @@
 package com.artfii.amq.http;
 
-import com.artfii.amq.http.routes.Controller;
-import com.artfii.amq.http.routes.Router;
-import com.artfii.amq.core.aio.*;
+import com.artfii.amq.core.aio.AioPipe;
+import com.artfii.amq.core.aio.AioProcessor;
+import com.artfii.amq.core.aio.State;
 import com.artfii.amq.core.aio.plugin.Monitor;
 import com.artfii.amq.core.aio.plugin.Plugin;
 import com.artfii.amq.http.routes.Controller;
 import com.artfii.amq.http.routes.Router;
+
+import java.util.Set;
 
 /**
  * Func : Http 服务端处理中心
@@ -36,6 +38,11 @@ public class HttpProcessor implements AioProcessor<Http> {
     @Override
     public void addPlugin(Plugin plugin) {
 
+    }
+
+    @Override
+    public Set<Plugin> getPlugins() {
+        return null;
     }
 
     @Override

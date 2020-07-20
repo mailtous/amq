@@ -2,22 +2,52 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.artfii.amq</groupId>
         <artifactId>amq-parent</artifactId>
-        <version>0.0.2-snapshot</version>
+        <version>0.0.3-snapshot</version>
+        <relativePath>../amq-parent</relativePath>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
     <artifactId>amq-pro</artifactId>
+    <version>0.0.3-snapshot</version>
+
     <dependencies>
         <dependency>
             <groupId>com.artfii.amq</groupId>
             <artifactId>amq-core</artifactId>
-            <version>0.0.2-snapshot</version>
-            <scope>compile</scope>
+            <version>0.0.3-snapshot</version>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <nonFilteredFileExtensions>
+                        <!-- 避免maven输出资源文件时变更了证书内容 -->
+                        <nonFilteredFileExtension>pem</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>pfx</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>p12</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>jks</nonFilteredFileExtension>
+                    </nonFilteredFileExtensions>
+                </configuration>
+            </plugin>
+        </plugins>
+        <resources>
+            <resource>
+                <directory>/src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+            <resource>
+                <directory>/test/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
+    </build>
 
 
 </project>

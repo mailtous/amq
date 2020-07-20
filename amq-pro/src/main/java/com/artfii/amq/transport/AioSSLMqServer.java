@@ -22,10 +22,10 @@ import java.util.concurrent.TimeUnit;
 public class AioSSLMqServer {
     private static Logger logger = LoggerFactory.getLogger(AioSSLMqServer.class);
 
+    public static final AioSSLMqServer instance = new AioSSLMqServer();
+
     private AioSSLMqServer() {
     }
-
-    public static final AioSSLMqServer instance = new AioSSLMqServer();
     private AioServer aioServer = null;
 
     private HttpServer httpServer = null;
@@ -36,7 +36,7 @@ public class AioSSLMqServer {
         try {
             AioSSLQuickServer<ByteBuffer> aioServer = new AioSSLQuickServer(MqConfig.inst.host, MqConfig.inst.port, new MqProtocol(), new MqServerProcessor());
             aioServer.startCheckAlive(MqConfig.inst.start_check_client_alive)
-            .startMonitorPlugin(MqConfig.inst.start_flow_monitor)
+//            .startMonitorPlugin(MqConfig.inst.start_flow_monitor)
             .setResumeSubcribe(true);
             //
             pool.submit(aioServer);

@@ -8,15 +8,15 @@
     <parent>
         <groupId>com.artfii.amq</groupId>
         <artifactId>amq-parent</artifactId>
-        <version>0.0.2-snapshot</version>
-        <relativePath>../amq-parent/pom.xml</relativePath>
+        <version>0.0.3-snapshot</version>
+        <relativePath>../amq-parent</relativePath>
     </parent>
 
     <!---->
     <name>amq-core</name>
     <groupId>com.artfii.amq</groupId>
     <artifactId>amq-core</artifactId>
-    <version>0.0.2-snapshot</version>
+    <version>0.0.3-snapshot</version>
 
     <profiles>
         <profile>

@@ -5,17 +5,17 @@
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
 
-    <name>artlongs-amq</name>
+    <name>artfii-amq</name>
     <groupId>com.artfii.amq</groupId>
-    <artifactId>artlongs-amq</artifactId>
-    <version>${amq.version}</version>
+    <artifactId>artfii-amq</artifactId>
+    <version>0.0.3-snapshot</version>
 
     <modules>
         <module>amq-parent</module>
     </modules>
 
     <properties>
-        <amq.version>0.0.2-snapshot</amq.version>
+        <amq.version>0.0.3-snapshot</amq.version>
     </properties>
 
 </project>

@@ -20,7 +20,7 @@ public enum MqConfig {
     public String prop_file_and_path = "amq.properties";
     public String profile = "";
 
-    //========================== IO ITME =====================================
+    //========================== IO CONFIG =====================================
     public String host = "127.0.0.1";
     public int port = 8888;
     public int admin_http_port=8889;
@@ -40,7 +40,7 @@ public enum MqConfig {
     // Ringbuff 工作线程最大时长(秒)
     public long worker_keepalive_second = 30 * 60;
 
-    //========================== MQ ITME =====================================
+    //========================== MQ CONFIG =====================================
     // 自动确认收到消息
     public boolean mq_auto_acked = true;
 
@@ -73,7 +73,19 @@ public enum MqConfig {
     //启动 MQ 后台管理系统
     public boolean start_mq_admin = true;
 
-    //========================== DB ITME =====================================
+    //========================== SSL CONFIG =====================================
+
+    public String amq_client_jks_file;
+    public String amq_client_jks_pwd;
+    public String amq_client_trust_file;
+    public String amq_client_trust_pwd;
+    //
+    public String amq_server_jks_file;
+    public String amq_server_jks_pwd;
+    public String amq_server_trust_file;
+    public String amq_server_trust_pwd;
+
+    //========================== DB CONFIG =====================================
     // MAPDB 数据库文件
     public String mq_db_store_file_path = "/volumes/work/mapdb/";
 
@@ -94,7 +106,7 @@ public enum MqConfig {
                     String v = props.getProperty((String) pKey).trim();
                     String fieldKey = ppKey.replace(profile + ".", "");
                     Field field = fieldMap.get(fieldKey);
-                    setField(field, v);
+                    PropUtil.setField(this,field, v);
                 }
             }
             fieldMap.clear();
@@ -102,25 +114,6 @@ public enum MqConfig {
 
     }
 
-    private void setField(Field field, String v) {
-        try {
-            if (field.getType() == String.class) {
-                field.set(this, v);
-            }
-            if (field.getType() == Integer.class || field.getType() == int.class) {
-                field.set(this, Integer.valueOf(v));
-            }
-            if (field.getType() == Boolean.class || field.getType() == boolean.class) {
-                field.set(this, Boolean.valueOf(v));
-            }
-            if (field.getType() == Long.class || field.getType() == long.class) {
-                field.set(this, Long.valueOf(v));
-            }
-
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-    }
 
     public static void main(String[] args) {
         System.err.println(MqConfig.inst.profile);

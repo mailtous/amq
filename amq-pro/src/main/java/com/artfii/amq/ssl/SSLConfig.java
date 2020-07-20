@@ -17,23 +17,27 @@ public class SSLConfig {
      * 配置引擎在握手时使用客户端（或服务器）模式
      */
     private boolean clientMode;
-    private String keyFile;
 
+    /**
+     * 实际上是私钥文件
+     */
+    private String keystoreFile;
     private String keystorePassword;
 
-    private String keyPassword;
+    /**
+     * 实际上是公钥文件
+     */
     private String trustFile;
-
     private String trustPassword;
 
     private ClientAuth clientAuth = ClientAuth.NONE;
 
-    public String getKeyFile() {
-        return keyFile;
+    public String getKeystoreFile() {
+        return keystoreFile;
     }
 
-    public void setKeyFile(String keyFile) {
-        this.keyFile = keyFile;
+    public void setKeystoreFile(String keystoreFile) {
+        this.keystoreFile = keystoreFile;
     }
 
     public String getKeystorePassword() {
@@ -42,14 +46,6 @@ public class SSLConfig {
 
     public void setKeystorePassword(String keystorePassword) {
         this.keystorePassword = keystorePassword;
-    }
-
-    public String getKeyPassword() {
-        return keyPassword;
-    }
-
-    public void setKeyPassword(String keyPassword) {
-        this.keyPassword = keyPassword;
     }
 
     public String getTrustFile() {

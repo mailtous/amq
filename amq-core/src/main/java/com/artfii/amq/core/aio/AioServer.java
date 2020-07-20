@@ -144,7 +144,6 @@ public class AioServer<T> implements Runnable {
                                 createPipe(channel);
                             }
                         });
-//                        createPipe(channel);
                     }
                     serverSocketChannel.accept(serverSocketChannel, this);
                 }

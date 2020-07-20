@@ -2,6 +2,7 @@ package com.artfii.amq.conf;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.Enumeration;
 import java.util.Properties;
 
@@ -34,6 +35,26 @@ public class PropUtil {
             String key = (String) en.nextElement();
             String value = props.getProperty(key);
             System.out.println(key + " : " + value);
+        }
+    }
+
+    public static void setField(Object clz,Field field, String v) {
+        try {
+            if (field.getType() == String.class) {
+                field.set(clz, v);
+            }
+            if (field.getType() == Integer.class || field.getType() == int.class) {
+                field.set(clz, Integer.valueOf(v));
+            }
+            if (field.getType() == Boolean.class || field.getType() == boolean.class) {
+                field.set(clz, Boolean.valueOf(v));
+            }
+            if (field.getType() == Long.class || field.getType() == long.class) {
+                field.set(clz, Long.valueOf(v));
+            }
+
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
         }
     }
 

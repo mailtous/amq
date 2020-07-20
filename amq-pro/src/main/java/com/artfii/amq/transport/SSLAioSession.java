@@ -8,6 +8,8 @@
 
 package com.artfii.amq.transport;
 
+import com.artfii.amq.buffer.BufferFactory;
+import com.artfii.amq.buffer.BufferPage;
 import com.artfii.amq.core.aio.AioPipe;
 import com.artfii.amq.core.aio.AioServerConfig;
 import com.artfii.amq.ssl.HandshakeCallback;
@@ -46,14 +48,20 @@ public class SSLAioSession<T> extends AioPipe<T> {
     Semaphore readSemaphore = new Semaphore(1);
 
     /**
+     * 自适应的输出长度
+     */
+    private int adaptiveWriteSize = -1;
+
+    /**
      * @param channel
      * @param config
      * @param sslService                是否服务端Session
      */
     SSLAioSession(AsynchronousSocketChannel channel, AioServerConfig<T> config, SSLService sslService) {
         super(channel, config);
-        this.handshakeModel = sslService.createSSLEngine(channel);
+        BufferPage bp = BufferFactory.DISABLED_BUFFER_FACTORY.create().allocateBufferPage();
         this.sslService = sslService;
+        this.handshakeModel = sslService.createSSLEngine(channel,bp);
     }
 
     @Override
@@ -109,57 +117,79 @@ public class SSLAioSession<T> extends AioPipe<T> {
     }
 
     @Override
+    protected void continueRead() {
+        readFromChannel0(readBuffer);
+    }
+
+    @Override
     public void readFromChannel(boolean eof) {
         checkInitialized();
         doUnWrap();
+        readBuffer = netReadBuffer;
         super.readFromChannel(eof);
     }
 
     @Override
-    protected void continueRead() {
-        readFromChannel0(netReadBuffer);
-    }
-
-    @Override
     protected void continueWrite() {
-        doWrap();
+        doWrap(writeBuffer);
         writeToChannel0(netWriteBuffer);
     }
+/*
+    private ByteBuffer doWrap(ByteBuffer writeBuffer) {
+        int maxPacketSize = sslEngine.getSession().getPacketBufferSize();
+        netWriteBuffer = ByteBuffer.allocate(maxPacketSize);
+        try {
+            SSLEngineResult r = sslEngine.wrap(writeBuffer, netWriteBuffer);
+            netWriteBuffer.flip();
+            int length = netWriteBuffer.remaining();
+            System.out.println(writeBuffer + " wrapped " + length + " bytes.");
+            System.out.println(writeBuffer + " handshake status is " + sslEngine.getHandshakeStatus());
+            if (maxPacketSize < length && maxPacketSize != 0) {
+                throw new AssertionError("Handshake wrapped net buffer length "
+                        + length + " exceeds maximum packet size "
+                        + maxPacketSize);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return netWriteBuffer;
+    }*/
 
-    private void doWrap() {
+    private void doWrap(ByteBuffer writeBuffer) {
         try {
             netWriteBuffer.compact();
+            int limit = writeBuffer.limit();
+            if (adaptiveWriteSize > 0 && writeBuffer.remaining() > adaptiveWriteSize) {
+                writeBuffer.limit(writeBuffer.position() + adaptiveWriteSize);
+            }
             SSLEngineResult result = sslEngine.wrap(writeBuffer, netWriteBuffer);
             while (result.getStatus() != SSLEngineResult.Status.OK) {
                 switch (result.getStatus()) {
                     case BUFFER_OVERFLOW:
-                        logger.info("doWrap BUFFER_OVERFLOW");
-//                        int appSize = netWriteBuffer.capacity() * 2 < sslEngine.getSession().getPacketBufferSize() ? netWriteBuffer.capacity() * 2 : sslEngine.getSession().getPacketBufferSize();
-//                        logger.info("doWrap BUFFER_OVERFLOW:" + appSize);
-//                        ByteBuffer b = ByteBuffer.allocate(appSize);
-//                        netWriteBuffer.flip();
-//                        b.put(netWriteBuffer);
-//                        netWriteBuffer = b;
+                        netWriteBuffer.clear();
+                        writeBuffer.limit(writeBuffer.position() + ((writeBuffer.limit() - writeBuffer.position() >> 1)));
+                        adaptiveWriteSize = writeBuffer.remaining();
                         break;
                     case BUFFER_UNDERFLOW:
                         logger.info("doWrap BUFFER_UNDERFLOW");
                         break;
                     default:
-                        logger.error("doWrap Result:" + result.getStatus());
+                        logger.warn("doWrap Result:" + result.getStatus());
                 }
                 result = sslEngine.wrap(writeBuffer, netWriteBuffer);
             }
+            writeBuffer.limit(limit);
             netWriteBuffer.flip();
         } catch (SSLException e) {
             throw new RuntimeException(e);
         }
     }
 
+
     private void doUnWrap() {
         try {
-            netReadBuffer.flip();
-
-            SSLEngineResult result = sslEngine.unwrap(netReadBuffer, readBuffer);
+            readBuffer.flip();
+            SSLEngineResult result = sslEngine.unwrap(readBuffer,netReadBuffer);
             while (result.getStatus() != SSLEngineResult.Status.OK) {
                 switch (result.getStatus()) {
                     case BUFFER_OVERFLOW:
@@ -179,20 +209,20 @@ public class SSLAioSession<T> extends AioPipe<T> {
 //                        int netSize = sslEngine.getSession().getPacketBufferSize();
 
                         // Resize buffer if needed.
-                        if (netReadBuffer.limit() == netReadBuffer.capacity()) {
-                            int netSize = netReadBuffer.capacity() * 2 < sslEngine.getSession().getPacketBufferSize() ? netReadBuffer.capacity() * 2 : sslEngine.getSession().getPacketBufferSize();
+                        if (readBuffer.limit() == readBuffer.capacity()) {
+                            int netSize = readBuffer.capacity() * 2 < sslEngine.getSession().getPacketBufferSize() ? readBuffer.capacity() * 2 : sslEngine.getSession().getPacketBufferSize();
                             logger.debug("BUFFER_UNDERFLOW:" + netSize);
                             ByteBuffer b1 = ByteBuffer.allocate(netSize);
-                            b1.put(netReadBuffer);
-                            netReadBuffer = b1;
+                            b1.put(readBuffer);
+                            readBuffer = b1;
                         } else {
-                            if (netReadBuffer.position() > 0) {
-                                netReadBuffer.compact();
+                            if (readBuffer.position() > 0) {
+                                readBuffer.compact();
                             } else {
-                                netReadBuffer.position(netReadBuffer.limit());
-                                netReadBuffer.limit(netReadBuffer.capacity());
+                                readBuffer.position(readBuffer.limit());
+                                readBuffer.limit(readBuffer.capacity());
                             }
-                            logger.debug("BUFFER_UNDERFLOW,continue read:" + netReadBuffer);
+                            logger.debug("BUFFER_UNDERFLOW,continue read:" + readBuffer);
                         }
                         // Obtain more inbound network data for src,
                         // then retry the operation.
@@ -201,10 +231,11 @@ public class SSLAioSession<T> extends AioPipe<T> {
                     default:
                         logger.error("doUnWrap Result:" + result.getStatus());
                         // other cases: CLOSED, OK.
+                        return;
                 }
-                result = sslEngine.unwrap(netReadBuffer, readBuffer);
+                result = sslEngine.unwrap(readBuffer,netReadBuffer);
             }
-            netReadBuffer.compact();
+            readBuffer.compact();
         } catch (SSLException e) {
             throw new RuntimeException(e);
         }

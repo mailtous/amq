@@ -13,12 +13,16 @@ import com.artfii.amq.core.aio.AioClient;
 import com.artfii.amq.core.aio.AioPipe;
 import com.artfii.amq.core.aio.AioProcessor;
 import com.artfii.amq.core.aio.Protocol;
+import com.artfii.amq.core.aio.plugin.Plugin;
 import com.artfii.amq.ssl.SSLConfig;
 import com.artfii.amq.ssl.SSLService;
+import com.artfii.amq.ssl.SslPlugin;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -48,11 +52,22 @@ public class AioSSLQuickClient<T> extends AioClient<T> {
      */
     @Override
     public AioPipe<T> start(AsynchronousChannelGroup asynchronousChannelGroup) throws IOException, ExecutionException, InterruptedException {
-        //启动SSL服务
+        //配置SSL证书
         sslConfig.setClientMode(true);
-        sslService = new SSLService(sslConfig);
+        //setKeyStore(MqConfig.inst.amq_client_jks_file,MqConfig.inst.amq_client_jks_pwd);
+       // setTrust(MqConfig.inst.amq_client_trust_file, MqConfig.inst.amq_client_trust_pwd);
+     //   sslService = new SSLService(true,ClientAuth.NONE);
+        //启动SSL服务
         AsynchronousSocketChannel socketChannel = AsynchronousSocketChannel.open(asynchronousChannelGroup);
         socketChannel.connect(new InetSocketAddress(config.getHost(), config.getPort())).get();
+
+        // 从插件里取得配置好的 sslService
+        Set<Plugin> pluginSet = config.getProcessor().getPlugins();
+        for (Plugin plugin : pluginSet) {
+            if (plugin instanceof SslPlugin) {
+                this.sslService = ((SslPlugin) plugin).getSslService();
+            }
+        }
         //连接成功则构造AIOSession对象
         pipe = new SSLAioSession<T>(socketChannel, config, sslService);
         pipe.initSession();
@@ -61,14 +76,8 @@ public class AioSSLQuickClient<T> extends AioClient<T> {
 
 
     public AioSSLQuickClient<T> setKeyStore(String keyStoreFile, String keystorePassword) {
-        sslConfig.setKeyFile(keyStoreFile);
+        sslConfig.setKeystoreFile(keyStoreFile);
         sslConfig.setKeystorePassword(keystorePassword);
-        return this;
-    }
-
-
-    public AioSSLQuickClient<T> setKeyPassword(String keyPassword) {
-        sslConfig.setKeyPassword(keyPassword);
         return this;
     }
 

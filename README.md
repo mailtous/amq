@@ -1,6 +1,6 @@
 # 关于 AMQ [![](https://jitpack.io/v/mailtous/amq.svg)](https://jitpack.io/#mailtous/amq)
 
-Artlongs-MQ 简称(AMQ), 是一个极轻量化,依赖极度少的 MQ 消息系统.
+artfii-MQ 简称(AMQ), 是一个极轻量化,依赖极度少的 MQ 消息系统.
 使用方便,高性能,并且对硬件要求低,是它的特色.
 1. 在追求小的同时,高性能也是必须的,消息的分派使用了 LMAX-Ringbuffer 技术以保证性能.
 2. 默认情况下,发布的消息存活期为一天,以避免像 RocketMQ 那样产生大量过期无效的消息堆积.
@@ -28,7 +28,7 @@ Aio的源码来源于 smart-socket(https://github.com/smartboot/smart-socket) ,�
 <dependency>
     <groupId>com.github.mailtous</groupId>
     <artifactId>amq-core</artifactId>
-    <version>0.0.2-snapshot</version>
+    <version>0.0.3-snapshot</version>
 </dependency>
 ```
 

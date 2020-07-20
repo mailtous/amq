@@ -6,7 +6,7 @@
     <parent>
         <artifactId>example</artifactId>
         <groupId>com.artfii.amq</groupId>
-        <version>0.0.2-snapshot</version>
+        <version>0.0.3-snapshot</version>
     </parent>
 
     <artifactId>spring-boot</artifactId>
@@ -21,19 +21,18 @@
         <!-- AMQ -->
         <dependency>
             <groupId>com.artfii.amq</groupId>
-            <artifactId>amq-core</artifactId>
-            <version>0.0.2-snapshot</version>
+            <artifactId>amq-pro</artifactId>
+            <version>0.0.3-snapshot</version>
         </dependency>
     </dependencies>
 
     <build>
-<!--        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>2.0.1.RELEASE</version>
-            </plugin>
-        </plugins>-->
+        <resources>
+            <resource>
+                <directory>/src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
     </build>
 
 

@@ -6,10 +6,10 @@
     <parent>
         <artifactId>example</artifactId>
         <groupId>com.artfii.amq</groupId>
-        <version>0.0.2-snapshot</version>
+        <version>0.0.3-snapshot</version>
     </parent>
     <artifactId>act</artifactId>
-    <version>0.0.2-snapshot</version>
+    <version>0.0.3-snapshot</version>
 
     <properties>
         <app.entry>amq.example.act.AppStart</app.entry>
@@ -34,7 +34,7 @@
         <dependency>
             <groupId>com.artfii.amq</groupId>
             <artifactId>amq-core</artifactId>
-            <version>0.0.2-snapshot</version>
+            <version>0.0.3-snapshot</version>
         </dependency>
 
     </dependencies>
