@@ -85,6 +85,9 @@ public enum MqConfig {
     public String amq_server_trust_file;
     public String amq_server_trust_pwd;
 
+    public String amq_pubkey_file;
+    public String amq_selftkey_file;
+
     //========================== DB CONFIG =====================================
     // MAPDB 数据库文件
     public String mq_db_store_file_path = "/volumes/work/mapdb/";

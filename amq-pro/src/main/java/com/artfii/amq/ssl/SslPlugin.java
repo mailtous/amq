@@ -15,9 +15,10 @@ import com.artfii.amq.core.MqConfig;
 import com.artfii.amq.core.aio.AioPipe;
 import com.artfii.amq.core.aio.State;
 import com.artfii.amq.core.aio.plugin.Plugin;
+import com.artfii.amq.tools.cipher.Rsa;
 
-import java.io.InputStream;
-import java.nio.channels.AsynchronousSocketChannel;
+import java.math.BigInteger;
+import java.util.List;
 
 /**
  * SSL/TLS通信插件
@@ -26,54 +27,56 @@ import java.nio.channels.AsynchronousSocketChannel;
  * @version V1.0 , 2020/4/17
  */
 public final class SslPlugin<T> implements Plugin<T> {
-    private SSLService sslService;
+    private static final String hi_message = "hi-amq!";
+    public static BigInteger[] PUB_KEY=null;
+    public static BigInteger[] SELFT_KEY=null;
+    private static Rsa rsa = null;
     private BufferPagePool bufferPagePool;
+    private SSLService sslService;
     private boolean init = false;
+
 
     public SslPlugin() {
         this.bufferPagePool = BufferFactory.DISABLED_BUFFER_FACTORY.create();
+        initRSA();
     }
 
     public SslPlugin(BufferPagePool bufferPagePool) {
         this.bufferPagePool = bufferPagePool;
     }
 
-
-    public SslPlugin initForServer() {
-        InputStream serverJksFile = this.getClass().getResourceAsStream(MqConfig.inst.amq_server_jks_file);
-        initForServer(serverJksFile, MqConfig.inst.amq_server_jks_pwd, MqConfig.inst.amq_server_trust_pwd, ClientAuth.OPTIONAL);
-        return this;
+    private void initRSA(){
+        PUB_KEY = Rsa.unFormatKey(MqConfig.inst.amq_pubkey_file);
+        SELFT_KEY = Rsa.unFormatKey(MqConfig.inst.amq_selftkey_file);
+        rsa = Rsa.builder().setKey(PUB_KEY, SELFT_KEY).fast().build();
     }
 
-    public SslPlugin initForClinet() {
-        InputStream clientTrustFile = this.getClass().getResourceAsStream(MqConfig.inst.amq_server_jks_file);
-        initForClient(clientTrustFile, MqConfig.inst.amq_client_trust_pwd);
-        return this;
+    /**
+     * 发送握手信息
+     * @return
+     */
+    public List<BigInteger> ping() {
+        return rsa.encrypt(hi_message);
     }
 
-    public void initForServer(InputStream keyStoreInputStream, String keyStorePassword, String keyPassword, ClientAuth clientAuth) {
-        initCheck();
-        sslService = new SSLService(false, clientAuth);
-        sslService.initKeyStore(keyStoreInputStream, keyStorePassword, keyPassword);
-
+    /**
+     * 接收握手信息
+     * @param receive
+     * @return
+     */
+    public String pong(List<BigInteger> receive) {
+        return rsa.decrypt(receive);
     }
 
-    public void initForClient(InputStream trustInputStream, String trustPassword) {
-        initCheck();
-        sslService = new SSLService(true, ClientAuth.NONE);
-        sslService.initTrust(trustInputStream, trustPassword);
+    /**
+     * 通讯认证是否成功
+     * @param receive 收到的握手信息
+     * @return
+     */
+    public boolean isAuthSucc(String receive) {
+        return hi_message.equals(receive.trim());
     }
 
-    private void initCheck() {
-        if (init) {
-            throw new RuntimeException("plugin is already init");
-        }
-        init = true;
-    }
-
-    public final AsynchronousSocketChannel shouldAccept(AsynchronousSocketChannel channel) {
-        return new SslAsynchronousSocketChannel(channel, sslService, bufferPagePool.allocateBufferPage());
-    }
 
     public SSLService getSslService() {
         return sslService;
@@ -84,8 +87,8 @@ public final class SslPlugin<T> implements Plugin<T> {
     }
 
     @Override
-    public boolean preProcess(AioPipe<T> pipe, T t) {
-        return false;
+    public boolean preProcess(AioPipe<T> pipe, T message) {
+        return isAuthSucc((String)message);
     }
 
     @Override

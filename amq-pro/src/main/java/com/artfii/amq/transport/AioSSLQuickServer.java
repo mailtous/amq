@@ -9,16 +9,13 @@
 package com.artfii.amq.transport;
 
 import com.artfii.amq.core.aio.*;
-import com.artfii.amq.core.aio.plugin.Plugin;
 import com.artfii.amq.ssl.ClientAuth;
 import com.artfii.amq.ssl.SSLConfig;
 import com.artfii.amq.ssl.SSLService;
-import com.artfii.amq.ssl.SslPlugin;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -55,13 +52,6 @@ public class AioSSLQuickServer<T> extends AioServer<T> {
         if (config.isBannerEnabled()) {
             printBanner(System.out);
         }
-        Set<Plugin> pluginSet = config.getProcessor().getPlugins();
-        for (Plugin plugin : pluginSet) {
-            if (plugin instanceof SslPlugin) {
-                this.sslService = ((SslPlugin) plugin).getSslService();
-            }
-        }
-        //启动SSL服务
         start0(new Function<AsynchronousSocketChannel, AioPipe<T>>() {
             @Override
             public AioPipe<T> apply(AsynchronousSocketChannel channel) {
