@@ -1,7 +1,5 @@
 package com.artfii.amq.core.aio;
 
-import com.artfii.amq.core.BaseMessage;
-import com.artfii.amq.core.BaseMsgType;
 import com.artfii.amq.core.aio.plugin.IpPlugin;
 import com.artfii.amq.core.aio.plugin.Monitor;
 import com.artfii.amq.core.aio.plugin.MonitorPlugin;
@@ -79,6 +77,10 @@ public class AioServer<T> implements Runnable {
 /*        if (checkAlive) {//运行检测心跳
             new ChannelAliveCheckPlugin(this.channelAliveMap).run();
         }*/
+    }
+
+    public AioServer() {
+
     }
 
     @Override

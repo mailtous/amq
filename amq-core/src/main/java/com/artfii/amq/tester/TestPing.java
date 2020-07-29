@@ -1,6 +1,7 @@
 package com.artfii.amq.tester;
 
 import com.artfii.amq.core.*;
+import com.artfii.amq.core.aio.AioProtocol;
 
 import java.io.IOException;
 import java.nio.channels.AsynchronousChannelGroup;
@@ -18,7 +19,7 @@ public class TestPing {
         final int threadSize = MqConfig.inst.client_channel_event_thread_size;
         AsynchronousChannelGroup channelGroup = AsynchronousChannelGroup.withFixedThreadPool(threadSize, (r)->new Thread(r));
         MqClientProcessor processor = new MqClientProcessor();
-        AioMqClient<Message> client = new AioMqClient(new MqProtocol(), processor);
+        AioMqClient<Message> client = new AioMqClient(new AioProtocol(), processor);
         client.start(channelGroup);
         //
         Message message = processor.publishJob("topic_get_userById",2);

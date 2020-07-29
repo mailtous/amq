@@ -2,9 +2,7 @@ package com.artfii.amq.core;
 
 import com.artfii.amq.core.aio.AioBaseProcessor;
 import com.artfii.amq.core.aio.AioPipe;
-import com.artfii.amq.core.aio.State;
-import com.artfii.amq.core.aio.AioBaseProcessor;
-import com.artfii.amq.core.aio.AioPipe;
+import com.artfii.amq.core.aio.BaseMessage;
 import com.artfii.amq.core.aio.State;
 import org.osgl.util.C;
 import org.osgl.util.S;
@@ -25,8 +23,8 @@ public class MqServerProcessor extends AioBaseProcessor<BaseMessage> {
             byte[] includeByte = baseMessage.getHead().getInclude();
             String includeStr = new String(includeByte).trim();
             C.List<String> pipeIds = S.split(includeStr, ",");
-            Integer oldPipeId = Integer.valueOf(pipeIds.get(0)==null?"0":pipeIds.get(0));
-            Integer newPipeId =Integer.valueOf(pipeIds.get(1)==null?"0":pipeIds.get(1));
+            Integer oldPipeId = Integer.valueOf(null==pipeIds.get(0)?"0":pipeIds.get(0));
+            Integer newPipeId =Integer.valueOf(null==pipeIds.get(1)?"0":pipeIds.get(1));
             if (oldPipeId>0 && newPipeId >0) {
                 logger.debug(" Request to replace pipeid :{}-{}",oldPipeId,newPipeId);
                 ProcessorImpl.INST.replacePipeIdOnReconnect(oldPipeId, newPipeId);

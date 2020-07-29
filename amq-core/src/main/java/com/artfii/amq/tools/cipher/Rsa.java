@@ -209,7 +209,7 @@ public class Rsa {
         BigInteger[] key = new BigInteger[2];
         String[] keyArr = keyStr.split("\\|");
         key[0]= new BigInteger(keyArr[0]);
-        key[1]= new BigInteger(keyArr[1]);
+        key[1]= new BigInteger(keyArr[1].split("\n")[0]);
         return key;
     }
 

@@ -1,8 +1,7 @@
-package com.artfii.amq.core;
+package com.artfii.amq.core.aio;
 
-import com.artfii.amq.core.aio.AioPipe;
-import com.artfii.amq.tools.FastList;
-import com.artfii.amq.core.aio.AioPipe;
+import com.artfii.amq.core.Message;
+import com.artfii.amq.core.Subscribe;
 import com.artfii.amq.tools.FastList;
 
 import java.util.List;

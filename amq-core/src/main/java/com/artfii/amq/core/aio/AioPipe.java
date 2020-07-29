@@ -33,6 +33,7 @@ public class AioPipe<T> implements Serializable {
     protected static final byte CLOSED = 0;
     protected static final byte CLOSING = -1;
     protected byte status = ENABLED;
+    public static boolean IS_HANDSHAKE = false; //SSL握手认证成功.
 
     protected ByteBuffer readBuffer; //读缓冲
     protected ByteBuffer writeBuffer; //写缓冲
@@ -187,6 +188,7 @@ public class AioPipe<T> implements Serializable {
         while (readBuffer.hasRemaining()) {
             T dataEntry = null;
             try {
+                //先按协议进行解码信息
                 dataEntry = ioServerConfig.getProtocol().decode(readBuffer);
             } catch (Exception e) {
                 logger.error("[AIO]解码出错: " + e.getMessage(), e);
@@ -196,12 +198,13 @@ public class AioPipe<T> implements Serializable {
                 break;
             }
 
-            //处理消息
             try {
+                // 对已解码的信息做预处理
                 ioServerConfig.getProcessor().process(this, dataEntry);
             } catch (Exception e) {
                 logger.error("[AIO]处理消息出错: " + e.getMessage(), e);
                 ioServerConfig.getProcessor().stateEvent(this, State.PROCESS_EXCEPTION, e);
+                break;
             }
         }
 

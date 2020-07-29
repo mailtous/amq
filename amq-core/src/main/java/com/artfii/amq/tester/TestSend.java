@@ -1,6 +1,7 @@
 package com.artfii.amq.tester;
 
 import com.artfii.amq.core.*;
+import com.artfii.amq.core.aio.AioProtocol;
 
 import java.io.IOException;
 import java.nio.channels.AsynchronousChannelGroup;
@@ -18,7 +19,7 @@ public class TestSend {
         final int groupSize = MqConfig.inst.client_channel_event_thread_size;
         AsynchronousChannelGroup channelGroup = AsynchronousChannelGroup.withFixedThreadPool(groupSize, (r) -> new Thread(r));
         MqClientProcessor processor = new MqClientProcessor();
-        AioMqClient<Message> client = new AioMqClient(MqConfig.inst.host, MqConfig.inst.port, new MqProtocol(), processor);
+        AioMqClient<Message> client = new AioMqClient(MqConfig.inst.host, MqConfig.inst.port, new AioProtocol(), processor);
         client.start(channelGroup);
 
         runWithNums(processor, 10);

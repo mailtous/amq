@@ -1,7 +1,7 @@
 package com.artfii.amq.serializer;
 
 
-import com.artfii.amq.core.BaseMessage;
+import com.artfii.amq.core.aio.BaseMessage;
 import com.artfii.amq.core.Message;
 import com.artfii.amq.core.Subscribe;
 import com.artfii.amq.http.Render;

@@ -1,4 +1,4 @@
-package com.artfii.amq.core;
+package com.artfii.amq.core.aio;
 
 /**
  * 定义消息类型

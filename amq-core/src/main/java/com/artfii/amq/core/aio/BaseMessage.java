@@ -1,7 +1,6 @@
-package com.artfii.amq.core;
+package com.artfii.amq.core.aio;
 
-import com.artfii.amq.serializer.ISerializer;
-import com.artfii.amq.tools.io.Buffers;
+import com.artfii.amq.core.Message;
 import com.artfii.amq.serializer.ISerializer;
 import com.artfii.amq.tools.io.Buffers;
 import org.slf4j.Logger;
@@ -38,10 +37,12 @@ public class BaseMessage implements Serializable {
         }
 
         public HeadMessage(int baseMsgType) {
+            this.protocol = amq;
             this.baseMsgType = baseMsgType;
         }
 
         public HeadMessage(int baseMsgType, byte[] include) {
+            this.protocol = amq;
             this.baseMsgType = baseMsgType;
             this.include = include;
         }
@@ -125,11 +126,7 @@ public class BaseMessage implements Serializable {
         //head
         baseMessage.getHead().setBodyLength(bodyLength);
         baseMessage.getHead().encode(buffer);
-     /*        int blanckSize = HeadMessage.head_length - buffer.position();
-       //头部空白bytes
-       byte[] blankBytes = new byte[blanckSize];
-        buffer.put(blankBytes);*/
-        // body
+        //body
         if(bodyLength>0){
             buffer.put(bodyByte);
         }

@@ -1,5 +1,6 @@
 package com.artfii.amq.core;
 
+import com.artfii.amq.core.aio.AioProtocol;
 import com.artfii.amq.core.aio.AioServer;
 import com.artfii.amq.http.AioHttpServer;
 import com.artfii.amq.http.HttpServer;
@@ -33,7 +34,7 @@ public class AioMqServer {
 
     public void start() {
         try {
-            AioServer<ByteBuffer> aioServer = new AioServer(MqConfig.inst.host, MqConfig.inst.port, new MqProtocol(), new MqServerProcessor());
+            AioServer<ByteBuffer> aioServer = new AioServer(MqConfig.inst.host, MqConfig.inst.port, new AioProtocol(), new MqServerProcessor());
             aioServer.startCheckAlive(MqConfig.inst.start_check_client_alive)
             .startMonitorPlugin(MqConfig.inst.start_flow_monitor)
             .setResumeSubcribe(true);

@@ -1,19 +1,17 @@
-package com.artfii.amq.core;
+package com.artfii.amq.core.aio;
 
-import com.artfii.amq.core.aio.Protocol;
-import com.artfii.amq.core.aio.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 
 /**
- * Func : Mq 协议
+ * Func : Aio 协议
  *
  * @author: leeton on 2019/2/22.
  */
-public class MqProtocol implements Protocol<BaseMessage> {
-    private static final Logger logger = LoggerFactory.getLogger(MqProtocol.class);
+public class AioProtocol implements Protocol<BaseMessage> {
+    private static final Logger logger = LoggerFactory.getLogger(AioProtocol.class);
 
     @Override
     public ByteBuffer encode(BaseMessage baseMessage) {

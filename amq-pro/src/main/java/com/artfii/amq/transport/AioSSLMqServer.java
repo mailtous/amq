@@ -1,7 +1,13 @@
 package com.artfii.amq.transport;
 
-import com.artfii.amq.core.*;
+import com.artfii.amq.core.MqConfig;
+import com.artfii.amq.core.MqScheduler;
+import com.artfii.amq.core.MqServerProcessor;
+import com.artfii.amq.core.ProcessorImpl;
+import com.artfii.amq.core.aio.AioProcessor;
+import com.artfii.amq.core.aio.AioProtocol;
 import com.artfii.amq.core.aio.AioServer;
+import com.artfii.amq.core.aio.Protocol;
 import com.artfii.amq.http.AioHttpServer;
 import com.artfii.amq.http.HttpServer;
 import org.slf4j.Logger;
@@ -12,32 +18,36 @@ import java.nio.ByteBuffer;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Func :MQ 服务端
  *
  * @author: leeton on 2019/2/22.
  */
-public class AioSSLMqServer {
+public class AioSSLMqServer<T> extends AioServer {
     private static Logger logger = LoggerFactory.getLogger(AioSSLMqServer.class);
 
     public static final AioSSLMqServer instance = new AioSSLMqServer();
 
-    private AioSSLMqServer() {
-    }
     private AioServer aioServer = null;
 
     private HttpServer httpServer = null;
 
     private ExecutorService pool = Executors.newFixedThreadPool(MqConfig.inst.server_connect_thread_pool_size);
 
+    private AioSSLMqServer() {
+    }
+
+    public AioSSLMqServer(String host, int port, Protocol<T> protocol, AioProcessor<T> messageProcessor) {
+        super(host, port, protocol, messageProcessor);
+    }
+
     public void start() {
         try {
-            AioSSLQuickServer<ByteBuffer> aioServer = new AioSSLQuickServer(MqConfig.inst.host, MqConfig.inst.port, new MqProtocol(), new MqServerProcessor());
+            AioServer<ByteBuffer> aioServer = new AioServer(MqConfig.inst.host, MqConfig.inst.port, new AioProtocol(), new MqServerProcessor());
             aioServer.startCheckAlive(MqConfig.inst.start_check_client_alive)
 //            .startMonitorPlugin(MqConfig.inst.start_flow_monitor)
-            .setResumeSubcribe(true);
+                    .setResumeSubcribe(true);
             //
             pool.submit(aioServer);
             aioServer.start();
@@ -59,7 +69,7 @@ public class AioSSLMqServer {
         MqScheduler.inst.start();
     }
 
-    public void startAdmin(){
+    public void startAdmin() {
         if (MqConfig.inst.start_mq_admin) {
             httpServer = AioHttpServer.instance;
 //            HttpProcessor processor = httpServer.getHttpProcessor();
@@ -69,51 +79,19 @@ public class AioSSLMqServer {
         }
     }
 
-    public void shutdown() {
-        //关闭后台管理
-        this.httpServer.shutdown();
-        //关闭 MQ 服务
-        ProcessorImpl.INST.shutdown();
-        //关闭 AIO 服务器
-        this.aioServer.shutdown();
-        shutdownMe();
-        shutdownOfWait();
-        System.out.println("================= AMQ EXIT =================");
-        System.out.println("AMQ 已安全退出.");
-    }
 
-    private void shutdownMe(){
-        if(!pool.isTerminated()){
-            pool.shutdownNow();
-        }
-        try {
-            pool.awaitTermination(3, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            pool.shutdownNow();
-        }
-    }
-
-    private void shutdownOfWait(){
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void startCommond(){
+    private void startCommond() {
         Scanner sc = new Scanner(System.in);
-        while (true){
+        while (true) {
             sc.useDelimiter("/n");
             System.out.println();
             System.out.println("=======================================");
-            System.out.println("AMQ(SSL)已启动,(消息端口:"+MqConfig.inst.port+"),(管理端口:"+MqConfig.inst.admin_http_port+")");
+            System.out.println("AMQ(SSL)已启动,(消息端口:" + MqConfig.inst.port + "),(管理端口:" + MqConfig.inst.admin_http_port + ")");
             System.out.println("如果想安全退出,请输入命令: quit");
             System.out.println("=======================================");
             System.out.println();
             String quit = sc.nextLine();
-            if(quit.equalsIgnoreCase("quit")){
+            if (quit.equalsIgnoreCase("quit")) {
                 shutdown();
                 sc.close();
                 break;
@@ -121,7 +99,6 @@ public class AioSSLMqServer {
 
         }
     }
-
 
 
     public static void main(String[] args) throws IOException {

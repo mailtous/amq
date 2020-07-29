@@ -34,7 +34,7 @@ import java.io.*;
  * @author <a href="mailto:rmuller@xiam.nl">Ronald K. Muller</a>
  * @since annotation-detector 3.0.0
  */
-final class ClassFileBuffer implements DataInput {
+public final class ClassFileBuffer implements DataInput {
 
     private byte[] buffer;
     private int size; // the number of significant bytes read
@@ -43,7 +43,7 @@ final class ClassFileBuffer implements DataInput {
     /**
      * Create a new, empty {@code ClassFileBuffer} with the default initial capacity (8 kb).
      */
-    ClassFileBuffer() {
+    public ClassFileBuffer() {
         this(8 * 1024);
     }
 
