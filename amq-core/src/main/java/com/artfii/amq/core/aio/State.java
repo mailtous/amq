@@ -63,6 +63,11 @@ public enum State {
      * <p>处于流控状态下的服务端，当输出队列积压量下降到安全阈值后，释放流控状态。</p>
      * <b>未来该状态机可能会废除，并转移至NetMonitor</b>
      */
-    RELEASE_FLOW_LIMIT;
+    RELEASE_FLOW_LIMIT,
+
+    /**
+     * 认证失败
+     */
+    AUTH_FAIL;
 
 }

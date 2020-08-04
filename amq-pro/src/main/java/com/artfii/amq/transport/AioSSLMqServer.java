@@ -2,14 +2,13 @@ package com.artfii.amq.transport;
 
 import com.artfii.amq.core.MqConfig;
 import com.artfii.amq.core.MqScheduler;
-import com.artfii.amq.core.MqServerProcessor;
 import com.artfii.amq.core.ProcessorImpl;
-import com.artfii.amq.core.aio.AioProcessor;
 import com.artfii.amq.core.aio.AioProtocol;
 import com.artfii.amq.core.aio.AioServer;
-import com.artfii.amq.core.aio.Protocol;
 import com.artfii.amq.http.AioHttpServer;
 import com.artfii.amq.http.HttpServer;
+import com.artfii.amq.ssl.SslPlugin;
+import com.artfii.amq.ssl.SslServerProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,20 +37,18 @@ public class AioSSLMqServer<T> extends AioServer {
     private AioSSLMqServer() {
     }
 
-    public AioSSLMqServer(String host, int port, Protocol<T> protocol, AioProcessor<T> messageProcessor) {
-        super(host, port, protocol, messageProcessor);
-    }
-
     public void start() {
         try {
-            AioServer<ByteBuffer> aioServer = new AioServer(MqConfig.inst.host, MqConfig.inst.port, new AioProtocol(), new MqServerProcessor());
+            SslServerProcessor sslServerProcessor = new SslServerProcessor();
+            sslServerProcessor.addPlugin(new SslPlugin());
+            AioServer<ByteBuffer> aioServer = new AioServer(MqConfig.inst.host, MqConfig.inst.port, new AioProtocol(), sslServerProcessor);
+            this.aioServer = aioServer;
             aioServer.startCheckAlive(MqConfig.inst.start_check_client_alive)
 //            .startMonitorPlugin(MqConfig.inst.start_flow_monitor)
                     .setResumeSubcribe(true);
             //
             pool.submit(aioServer);
             aioServer.start();
-            this.aioServer = aioServer;
             //
             ProcessorImpl.INST.addMonitor(aioServer.getMonitor());
             //
@@ -86,7 +83,7 @@ public class AioSSLMqServer<T> extends AioServer {
             sc.useDelimiter("/n");
             System.out.println();
             System.out.println("=======================================");
-            System.out.println("AMQ(SSL)已启动,(消息端口:" + MqConfig.inst.port + "),(管理端口:" + MqConfig.inst.admin_http_port + ")");
+            System.out.println("AMQ(SSL)已启动,(消息端口:" + config.host+ "),(管理端口:" + config.port + ")");
             System.out.println("如果想安全退出,请输入命令: quit");
             System.out.println("=======================================");
             System.out.println();

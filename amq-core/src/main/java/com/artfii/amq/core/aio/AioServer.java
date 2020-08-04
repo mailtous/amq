@@ -74,9 +74,6 @@ public class AioServer<T> implements Runnable {
         config.setPort(port);
         config.setProtocol(protocol);
         config.setProcessor(messageProcessor);
-/*        if (checkAlive) {//运行检测心跳
-            new ChannelAliveCheckPlugin(this.channelAliveMap).run();
-        }*/
     }
 
     public AioServer() {
@@ -163,8 +160,6 @@ public class AioServer<T> implements Runnable {
         LOGGER.info("amq-socket server config is {}", config);
     }
 
-
-
     /**
      * 为每个新建立的连接创建 AioPipe 对象
      *
@@ -177,12 +172,12 @@ public class AioServer<T> implements Runnable {
             pipe = aioPipeFunction.apply(channel);
             pipe.initSession();
 //            System.err.println("create pipid = "+ pipe.getId());
-            if (null != pipe) {
+/*            if (null != pipe) {
                 channelAliveMap.putIfAbsent(pipe.getId(), pipe);
-                if(resumeSubcribe){
+                if(resumeSubcribe){ //配置还原订阅,则启用断链重连
                     sendPipeIdToClient(pipe);
                 }
-            }
+            }*/
         } catch (Exception e1) {
             LOGGER.debug(e1.getMessage(), e1);
             if (null == pipe) {

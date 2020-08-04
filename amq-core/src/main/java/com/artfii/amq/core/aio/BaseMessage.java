@@ -25,12 +25,14 @@ public class BaseMessage implements Serializable {
     //=========================================
 
     public static class HeadMessage implements Serializable {
-        public static final int head_length = 64; //头部总长度
+        public static final int head_length = 128; //头部总长度
         public static final int amq = 0x00616d71; //amq
         private int protocol = 0;
-        private int baseMsgType; //消息类型 --> BaseMsgType
+
+        /** 消息类型 {@link BaseMsgType}*/
+        private int baseMsgType;
         private int bodyLength = 0;  //消息总长度
-        private byte[] include; // 消息头包含的简短信息
+        private byte[] include; // 消息头包含的简短信息 , 必须满足: include < head_length - protocol-baseMsgType
 
         public HeadMessage() {
             this.protocol = amq;
@@ -52,6 +54,9 @@ public class BaseMessage implements Serializable {
             buffer.putInt(this.baseMsgType);
             buffer.putInt(this.bodyLength);
             int remainLength = head_length - buffer.position();
+            if(null != this.include && this.include.length>remainLength){
+                logger.warn(" head mini message length is OVERLOAD!");
+            }
             if(null != this.include && this.include.length <= remainLength){
                 buffer.put(this.include);
             }
@@ -100,6 +105,16 @@ public class BaseMessage implements Serializable {
 
         public void setInclude(byte[] include) {
             this.include = include;
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("HeadMessage{");
+            sb.append("protocol=").append(protocol);
+            sb.append(", baseMsgType=").append(baseMsgType);
+            sb.append(", bodyLength=").append(bodyLength);
+            sb.append('}');
+            return sb.toString();
         }
     }
 
@@ -188,5 +203,14 @@ public class BaseMessage implements Serializable {
 
     public void setBody(Message body) {
         this.body = body;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("BaseMessage{");
+        sb.append("head=").append(head);
+        sb.append(", body=").append(body);
+        sb.append('}');
+        return sb.toString();
     }
 }

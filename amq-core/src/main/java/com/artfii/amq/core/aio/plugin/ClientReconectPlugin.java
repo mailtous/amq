@@ -16,23 +16,32 @@ public class ClientReconectPlugin extends TimerTask {
     private static final Logger logger = LoggerFactory.getLogger(ClientReconectPlugin.class);
     public static Timer timer = null;
     private static AioPipe aioPipe;
+    private static ClientReconectPlugin clientReconectPlugin = null;
 
-    public ClientReconectPlugin(AioPipe aioPipe) {
-        this.aioPipe = aioPipe;
-        createTask();
+    private ClientReconectPlugin() {
     }
 
-    private synchronized void createTask() {
+    public static ClientReconectPlugin start(AioPipe pipe) {
+        if (null == clientReconectPlugin) {
+            clientReconectPlugin = new ClientReconectPlugin();
+            clientReconectPlugin.aioPipe = pipe;
+            runTask();
+        }
+        return clientReconectPlugin;
+    }
+
+    private static synchronized void runTask() {
         if (null == timer) {
             timer = new Timer("Reconnect Timer", true);
-            timer.scheduleAtFixedRate(this,50,5000);
+            timer.scheduleAtFixedRate(clientReconectPlugin, 50, 5000);
         }
     }
 
     @Override
     public void run() {
-        if(aioPipe.isClose()){
+        if (aioPipe.isClose()) {//如果通道已经断开,发起重连
             logger.warn("Client:{} try reconect to server.", aioPipe.getId());
+            System.err.println("Client:{} try reconect to server."+ aioPipe.getId());
             aioPipe = aioPipe.reConnect();
         }
     }

@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Properties;
 
 /**
- * Func :
+ * Func : IP 黑名单过滤
  *
  * @author: leeton on 2019/3/27.
  */

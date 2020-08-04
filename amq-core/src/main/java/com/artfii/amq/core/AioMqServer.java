@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author: leeton on 2019/2/22.
  */
-public class AioMqServer {
+public class AioMqServer extends AioServer {
     private static Logger logger = LoggerFactory.getLogger(AioMqServer.class);
 
     private AioMqServer() {
@@ -40,8 +40,8 @@ public class AioMqServer {
             .setResumeSubcribe(true);
             //
             pool.submit(aioServer);
-            aioServer.start();
             this.aioServer = aioServer;
+            aioServer.start();
             //
             ProcessorImpl.INST.addMonitor(aioServer.getMonitor());
             //
@@ -69,7 +69,7 @@ public class AioMqServer {
         }
     }
 
-    public void shutdown() {
+    public void shutdownAll() {
         //关闭后台管理
         this.httpServer.shutdown();
         //关闭 MQ 服务
@@ -108,7 +108,7 @@ public class AioMqServer {
             sc.useDelimiter("/n");
             System.out.println();
             System.out.println("=======================================");
-            System.out.println("AMQ已启动,(消息端口:"+MqConfig.inst.port+"),(管理端口:"+MqConfig.inst.admin_http_port+")");
+            System.out.println("AMQ已启动,(消息端口:" + config.host+ "),(管理端口:" + config.port + ")");
             System.out.println("如果想安全退出,请输入命令: quit");
             System.out.println("=======================================");
             System.out.println();

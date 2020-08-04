@@ -1,9 +1,8 @@
 package com.artfii.amq.ssl;
 
-import com.artfii.amq.core.aio.AioBaseProcessor;
-import com.artfii.amq.core.aio.AioPipe;
-import com.artfii.amq.core.aio.BaseMessage;
-import com.artfii.amq.core.aio.State;
+import com.artfii.amq.core.aio.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Func :
@@ -11,16 +10,24 @@ import com.artfii.amq.core.aio.State;
  * @author: leeton on 2020/7/28.
  */
 public class SslClientProcessor extends AioBaseProcessor<BaseMessage> {
+    private static Logger logger = LoggerFactory.getLogger(SslClientProcessor.class);
 
     private static SslPlugin sslPlugin = SslPlugin.build();
 
     @Override
     public void process0(AioPipe pipe, BaseMessage msg) {
+        logger.info("客户端收到信息:"+ msg.toString());
         if(!pipe.IS_HANDSHAKE){ // 客户端启动时发送了认证信息,这里对对认证结果进行判断
-            String rece = sslPlugin.clientReceMsg(msg);//服务端的认证结果
-            if(!sslPlugin.isAuthSucc(rece)){//认证失败
-                pipe.close();
-                throw new RuntimeException("client auth fail.");
+            BaseMessage.HeadMessage head = msg.getHead();
+            if (null != head && BaseMsgType.SECURE_SOCKET_MESSAGE_RSP == head.getBaseMsgType()) {
+                String rece = sslPlugin.clientReceMsg(msg);//服务端的认证结果
+                if(SslPlugin.Auth.isAuthSucc(rece)){//认证成功
+                    pipe.IS_HANDSHAKE = true;
+                    logger.warn("[AMQ]: client auth SUCC.");
+                }else {
+                    pipe.close();
+                    logger.warn("[AMQ]: client auth FAIL.");
+                }
             }
         }
         return;

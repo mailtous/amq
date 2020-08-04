@@ -38,7 +38,7 @@ public class AioSSLMqClient<T> extends AioClient<T> {
         aioPipe.initSession();
         //
         if (!aioPipe.IS_HANDSHAKE) {//发送握手信号
-            aioPipe.write(sslPlugin.clientReqAuth());
+            aioPipe.write(sslPlugin.clientAuthInfo());
         }
 
         return aioPipe;

@@ -1,6 +1,5 @@
 package com.artfii.amq.conf;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -8,7 +7,7 @@ import java.util.Enumeration;
 import java.util.Properties;
 
 /**
- * Func :
+ * Func :加载属性文件
  *
  * @author: leeton on 2019/3/27.
  */
@@ -34,7 +33,13 @@ public class PropUtil {
         return properties;
     }
 
+    /**
+     * 按文件路径取得文件流
+     * @param fileAndPath 要填写相对class路径
+     * @return
+     */
     public static InputStream loadFile(String fileAndPath) {
+        //fileAndPath要填写相对路径
         return PropUtil.class.getClassLoader().getResourceAsStream(fileAndPath);
     }
 

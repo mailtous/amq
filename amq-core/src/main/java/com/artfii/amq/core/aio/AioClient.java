@@ -1,6 +1,5 @@
 package com.artfii.amq.core.aio;
 
-import com.artfii.amq.core.aio.plugin.ClientReconectPlugin;
 import com.artfii.amq.core.aio.plugin.Plugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +87,8 @@ public class AioClient<T> implements Runnable {
         pipe = new AioPipe<>(socketChannel, config);
         pipe.initSession();
         pipe.setAioClient(this);
-        new ClientReconectPlugin(pipe);
+        //断线重连
+//        ClientReconectPlugin.start(pipe);
         logger.warn("amq-socket client started on {} {}, pipeId:{}", config.getHost(), config.getPort(),pipe.getId());
         return pipe;
     }
