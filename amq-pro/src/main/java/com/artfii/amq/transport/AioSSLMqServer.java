@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -28,29 +27,29 @@ public class AioSSLMqServer<T> extends AioServer {
 
     public static final AioSSLMqServer instance = new AioSSLMqServer();
 
-    private AioServer aioServer = null;
-
     private HttpServer httpServer = null;
 
     private ExecutorService pool = Executors.newFixedThreadPool(MqConfig.inst.server_connect_thread_pool_size);
 
     private AioSSLMqServer() {
+        super(MqConfig.inst.host, MqConfig.inst.port, new AioProtocol(), new SslServerProcessor());
+        config.setSsl(true);
+        config.setServer(true);
+        config.getProcessor().addPlugin(new SslPlugin());
     }
 
     public void start() {
+
         try {
-            SslServerProcessor sslServerProcessor = new SslServerProcessor();
-            sslServerProcessor.addPlugin(new SslPlugin());
-            AioServer<ByteBuffer> aioServer = new AioServer(MqConfig.inst.host, MqConfig.inst.port, new AioProtocol(), sslServerProcessor);
-            this.aioServer = aioServer;
-            aioServer.startCheckAlive(MqConfig.inst.start_check_client_alive)
-//            .startMonitorPlugin(MqConfig.inst.start_flow_monitor)
+            this.startCheckAlive(MqConfig.inst.start_check_client_alive)
+    //            .startMonitorPlugin(MqConfig.inst.start_flow_monitor)
                     .setResumeSubcribe(true);
             //
-            pool.submit(aioServer);
-            aioServer.start();
+            pool.submit(this);
             //
-            ProcessorImpl.INST.addMonitor(aioServer.getMonitor());
+            super.start();
+            //
+            ProcessorImpl.INST.addMonitor(this.getMonitor());
             //
             startAdmin();
             //
@@ -58,8 +57,9 @@ public class AioSSLMqServer<T> extends AioServer {
             //
             startCommond();
         } catch (IOException e) {
-            logger.error(e.getMessage(), e);
+            e.printStackTrace();
         }
+
     }
 
     public void scheduler() {
@@ -69,10 +69,7 @@ public class AioSSLMqServer<T> extends AioServer {
     public void startAdmin() {
         if (MqConfig.inst.start_mq_admin) {
             httpServer = AioHttpServer.instance;
-//            HttpProcessor processor = httpServer.getHttpProcessor();
-//            processor.addController(new QueryController().getControllers());
             httpServer.start();
-
         }
     }
 

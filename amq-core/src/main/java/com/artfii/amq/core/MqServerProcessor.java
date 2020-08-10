@@ -20,7 +20,7 @@ public class MqServerProcessor extends AioBaseProcessor<BaseMessage> {
     @Override
     public void process0(AioPipe<BaseMessage> pipe, BaseMessage baseMessage) {
         if(BaseMessage.isReConnectReq(baseMessage.getHead())){
-            byte[] includeByte = baseMessage.getHead().getInclude();
+            byte[] includeByte = baseMessage.getHead().getSlot();
             String includeStr = new String(includeByte).trim();
             C.List<String> pipeIds = S.split(includeStr, ",");
             Integer oldPipeId = Integer.valueOf(null==pipeIds.get(0)?"0":pipeIds.get(0));

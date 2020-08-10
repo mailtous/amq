@@ -1,6 +1,8 @@
 package com.artfii.amq.core.aio;
 
+import com.artfii.amq.core.Message;
 import com.artfii.amq.tools.RingBufferQueue;
+import com.artfii.amq.tools.cipher.AesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +35,8 @@ public class AioPipe<T> implements Serializable {
     protected static final byte CLOSED = 0;
     protected static final byte CLOSING = -1;
     protected byte status = ENABLED;
-    public static boolean IS_HANDSHAKE = false; //SSL握手认证成功.
+    public boolean IS_HANDSHAKE = false; //SSL握手认证成功.
+    public String MSG_CHIPER = ""; //SSL握手成功后,取得的AEC密钥
 
     protected ByteBuffer readBuffer; //读缓冲
     protected ByteBuffer writeBuffer; //写缓冲
@@ -49,12 +52,27 @@ public class AioPipe<T> implements Serializable {
     private Object attachment; //附件对象(通常传输文件才用得到)
 
     private AioClient aioClient;
-
+    private boolean isClient;
+    private boolean ssl;
 
     public AioPipe() {
     }
 
+    public AioPipe(AsynchronousSocketChannel channel, AioServerConfig config, boolean ssl,boolean isClient) {
+        init(channel, config, isClient, ssl);
+    }
+
+    public AioPipe(AsynchronousSocketChannel channel, AioServerConfig config,boolean ssl) {
+        init(channel, config, false, false);
+    }
+
     public AioPipe(AsynchronousSocketChannel channel, AioServerConfig config) {
+        init(channel, config, false, false);
+    }
+
+    public AioPipe init(AsynchronousSocketChannel channel, AioServerConfig config, boolean isClient, boolean ssl) {
+        this.isClient = isClient;
+        this.ssl = ssl;
         this.channel = channel;
         this.ioServerConfig = config;
         this.writeCacheQueue = new RingBufferQueue<ByteBuffer>(config.getQueueSize());
@@ -62,6 +80,7 @@ public class AioPipe<T> implements Serializable {
         config.getProcessor().stateEvent(this, State.NEW_PIPE, null);
         this.readBuffer = DirectBufferUtil.allocateDirectBuffer(config.getDirctBufferSize());
         this.id = hashCode();
+        return this;
     }
 
     /**
@@ -69,6 +88,43 @@ public class AioPipe<T> implements Serializable {
      */
     public void initSession() {
         continueRead();
+    }
+
+    private T encodeOfHanded(T t) {
+        if (IS_HANDSHAKE && MSG_CHIPER != "") { //握手成功
+            BaseMessage message = (BaseMessage) t;
+            if (!isSSLMsg(message.getHead().getKind())) {
+                Message msg = message.getBody();
+                if (null != msg) {
+                    String bodyMsg = (String) msg.getV();
+                    msg.setV(AesUtil.build(MSG_CHIPER).encode(bodyMsg));
+//                    System.err.println("DO PWD= "+MSG_CHIPER);
+                }
+            }
+        }
+        return t;
+    }
+
+    private boolean isSSLMsg(int type) {
+        if (BaseMsgType.SECURE_SOCKET_MESSAGE_RSP == type) return true;
+        if (BaseMsgType.SECURE_SOCKET_MESSAGE_REQ == type) return true;
+        return false;
+    }
+
+    //解密握手之后的加密消息
+    private T decodeOfHands(T t) {
+        if (IS_HANDSHAKE && MSG_CHIPER != "") {
+            BaseMessage message = (BaseMessage) t;
+            if (!isSSLMsg(message.getHead().getKind())) {
+                System.err.println("type= " + message.getHead().getKind() + ", body: " + message.getBody()+" pwd:"+ MSG_CHIPER);
+                Message msg = message.getBody();
+                if (null != msg) {
+                    String bodyMsg = (String) msg.getV();
+                    msg.setV(AesUtil.build(MSG_CHIPER).decode(bodyMsg));
+                }
+            }
+        }
+        return t;
     }
 
     /**
@@ -79,7 +135,15 @@ public class AioPipe<T> implements Serializable {
      * @throws IOException
      */
     public final boolean write(T t) {
-        return writeBuffer(ioServerConfig.getProtocol().encode(t));
+        continueRead();
+        if(IS_HANDSHAKE){
+            encodeOfHanded(t);
+            boolean writed = writeBuffer(ioServerConfig.getProtocol().encode(t));
+            return writed;
+        }else {
+            boolean writed = writeBuffer(ioServerConfig.getProtocol().encode(t));
+            return writed;
+        }
     }
 
     public final boolean writeBuffer(ByteBuffer buffer) {
@@ -199,6 +263,8 @@ public class AioPipe<T> implements Serializable {
             }
 
             try {
+                //解码握手之后的加密消息
+                decodeOfHands(dataEntry);
                 // 对已解码的信息做预处理
                 ioServerConfig.getProcessor().process(this, dataEntry);
             } catch (Exception e) {
@@ -407,9 +473,9 @@ public class AioPipe<T> implements Serializable {
         return aioClient;
     }
 
-    public AioPipe reConnect(){
+    public AioPipe reConnect() {
         readedAndUnLock();
-       return this.aioClient.reConnect();
+        return this.aioClient.reConnect();
     }
 
     /**

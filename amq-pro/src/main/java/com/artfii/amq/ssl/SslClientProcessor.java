@@ -18,11 +18,13 @@ public class SslClientProcessor extends AioBaseProcessor<BaseMessage> {
     public void process0(AioPipe pipe, BaseMessage msg) {
         logger.info("客户端收到信息:"+ msg.toString());
         if(!pipe.IS_HANDSHAKE){ // 客户端启动时发送了认证信息,这里对对认证结果进行判断
-            BaseMessage.HeadMessage head = msg.getHead();
-            if (null != head && BaseMsgType.SECURE_SOCKET_MESSAGE_RSP == head.getBaseMsgType()) {
+            BaseMessage.Head head = msg.getHead();
+            if (null != head && BaseMsgType.SECURE_SOCKET_MESSAGE_RSP == head.getKind()) {
                 String rece = sslPlugin.clientReceMsg(msg);//服务端的认证结果
-                if(SslPlugin.Auth.isAuthSucc(rece)){//认证成功
+                SslPlugin.Auth auth = SslPlugin.Auth.decodeAuthResult(rece);
+                if(SslPlugin.Auth.isAuthSucc(auth.getFlag())){//认证成功
                     pipe.IS_HANDSHAKE = true;
+                    pipe.MSG_CHIPER = auth.getCipher();
                     logger.warn("[AMQ]: client auth SUCC.");
                 }else {
                     pipe.close();

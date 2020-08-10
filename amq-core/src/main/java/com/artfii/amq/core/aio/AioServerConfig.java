@@ -13,6 +13,7 @@ import java.util.List;
  */
 public class AioServerConfig<T> {
     private boolean isServer;
+    private boolean ssl;
     public static final String BANNER = "\n" +
             "   _              ____ \n" +
             "  /_\\    /\\/\\    /___ \\\n" +
@@ -167,13 +168,28 @@ public class AioServerConfig<T> {
         this.socketOptions.add(option);
     }
 
+    public boolean isSsl() {
+        return ssl;
+    }
+
+    public void setSsl(boolean ssl) {
+        this.ssl = ssl;
+    }
+
+    public void setServer(boolean server) {
+        isServer = server;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("AioServerConfig{");
         sb.append("isServer=").append(isServer);
+        sb.append(", ssl=").append(ssl);
         sb.append(", socketOptions=").append(socketOptions);
         sb.append(", host='").append(host).append('\'');
         sb.append(", port=").append(port);
+        sb.append(", processor=").append(processor);
+        sb.append(", protocol=").append(protocol);
         sb.append(", queueSize=").append(queueSize);
         sb.append(", dirctBufferSize=").append(dirctBufferSize);
         sb.append(", serverThreadNum=").append(serverThreadNum);
@@ -182,6 +198,7 @@ public class AioServerConfig<T> {
         sb.append(", flowLimitLine=").append(flowLimitLine);
         sb.append(", releaseLine=").append(releaseLine);
         sb.append(", bannerEnabled=").append(bannerEnabled);
+        sb.append(", clinet_break_reconnect_period_ms=").append(clinet_break_reconnect_period_ms);
         sb.append('}');
         return sb.toString();
     }

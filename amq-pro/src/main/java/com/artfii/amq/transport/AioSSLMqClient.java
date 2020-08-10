@@ -22,9 +22,11 @@ public class AioSSLMqClient<T> extends AioClient<T> {
 
     private AioPipe aioPipe;
     private static SslPlugin sslPlugin = new SslPlugin();
+    private final boolean isWaiting = true;
 
     public AioSSLMqClient(Protocol<T> protocol, AioProcessor<T> messageProcessor) {
         super(MqConfig.inst.host, MqConfig.inst.port, protocol, messageProcessor);
+        config.setSsl(true);
         this.addPlugin(sslPlugin);
     }
 
@@ -34,13 +36,20 @@ public class AioSSLMqClient<T> extends AioClient<T> {
         socketChannel.connect(new InetSocketAddress(config.getHost(), config.getPort())).get();
 
         //连接成功则构造AIOSession对象
-        aioPipe = new AioPipe(socketChannel, config);
-        aioPipe.initSession();
-        //
-        if (!aioPipe.IS_HANDSHAKE) {//发送握手信号
-            aioPipe.write(sslPlugin.clientAuthInfo());
+        aioPipe = new AioPipe(socketChannel, config,true,true);
+        //发送握手消息
+        boolean writed = aioPipe.write(sslPlugin.clientAuthInfo());
+        //检查是否握手成功
+        if (writed) {
+            aioPipe.initSession();
+            boolean isWaiting = true;
+            while (isWaiting) {
+                aioPipe.initSession();
+                if (aioPipe.IS_HANDSHAKE) {
+                    isWaiting = false;
+                }
+            }
         }
-
         return aioPipe;
     }
 

@@ -18,14 +18,16 @@ public class SslServerProcessor extends AioBaseProcessor<BaseMessage> {
     public void process0(AioPipe<BaseMessage> pipe, BaseMessage msg) {
         logger.info("服务端收到信息:"+ msg.toString());
         if(!pipe.IS_HANDSHAKE){ // 客户端启动时发送了认证信息,这里对认证信息进行核对
-            BaseMessage.HeadMessage head = msg.getHead();
-            if (null != head && BaseMsgType.SECURE_SOCKET_MESSAGE_REQ == head.getBaseMsgType()) {
+            BaseMessage.Head head = msg.getHead();
+            if (null != head && BaseMsgType.SECURE_SOCKET_MESSAGE_REQ == head.getKind()) {
                 if(sslPlugin.serverCheckAuth(msg)){
+                    SslPlugin.Auth auth = SslPlugin.Auth.serverAuthSucc();
+                    logger.warn("server aec pwd: " + auth);
                     pipe.IS_HANDSHAKE = true;
-                    pipe.write(sslPlugin.serverRspAuthResult(SslPlugin.Auth.serverAuthSucc()));
+                    pipe.MSG_CHIPER = auth.getCipher();
+                    pipe.write(sslPlugin.serverRspAuthResult(auth.getMsg()));
                 }else {
-                    pipe.IS_HANDSHAKE = false;
-//                    pipe.write(sslPlugin.serverRspAuthResult(SslPlugin.Auth.serverAuthFail()));
+                    pipe.close();
                 }
             }
         }

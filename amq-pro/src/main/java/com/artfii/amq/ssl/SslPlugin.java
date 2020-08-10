@@ -76,9 +76,7 @@ public final class SslPlugin<T> implements Plugin<T> {
     public BaseMessage clientAuthInfo() {
         List<BigInteger> msg = rsa.encrypt(Auth.HELLO);
         byte[] headMsg = ISerializer.Serializer.INST.of().toByte(msg);
-        BaseMessage baseMessage = new BaseMessage();
-        BaseMessage.HeadMessage head = new BaseMessage.HeadMessage(BaseMsgType.SECURE_SOCKET_MESSAGE_REQ, headMsg);
-        baseMessage.setHead(head);
+        BaseMessage baseMessage = BaseMessage.ofHead(BaseMsgType.SECURE_SOCKET_MESSAGE_REQ, headMsg);
         return baseMessage;
     }
 
@@ -91,22 +89,20 @@ public final class SslPlugin<T> implements Plugin<T> {
     public BaseMessage serverRspAuthResult(String backMsg) {
         List<BigInteger> msg = rsa.encrypt(backMsg);
         byte[] headMsg = ISerializer.Serializer.INST.of().toByte(msg);
-        BaseMessage baseMessage = new BaseMessage();
-        BaseMessage.HeadMessage head = new BaseMessage.HeadMessage(BaseMsgType.SECURE_SOCKET_MESSAGE_RSP, headMsg);
-        baseMessage.setHead(head);
+        BaseMessage baseMessage = BaseMessage.ofHead(BaseMsgType.SECURE_SOCKET_MESSAGE_RSP, headMsg);
         return baseMessage;
     }
 
     /**
      * 服务端接收握手信息
      *
-     * @param baseMessage
+     * @param handMessage
      * @return
      */
-    public String clientReceMsg(BaseMessage baseMessage) {
-        BaseMessage.HeadMessage head = baseMessage.getHead();
-        if (null != head && BaseMsgType.SECURE_SOCKET_MESSAGE_RSP == head.getBaseMsgType()) {
-            byte[] receBytes = head.getInclude();
+    public String clientReceMsg(BaseMessage handMessage) {
+        BaseMessage.Head head = handMessage.getHead();
+        if (null != head && BaseMsgType.SECURE_SOCKET_MESSAGE_RSP == head.getKind()) {
+            byte[] receBytes = head.getSlot();
             List<BigInteger> receCode = ISerializer.Serializer.INST.of().getObj(receBytes,List.class);
             String receMsg = rsa.decrypt(receCode);
             return receMsg;
@@ -120,9 +116,9 @@ public final class SslPlugin<T> implements Plugin<T> {
      * @return
      */
     public boolean serverCheckAuth(BaseMessage baseMessage) {
-        BaseMessage.HeadMessage head = baseMessage.getHead();
-        if (null != head && BaseMsgType.SECURE_SOCKET_MESSAGE_REQ == head.getBaseMsgType()) {
-            byte[] receBytes = head.getInclude();
+        BaseMessage.Head head = baseMessage.getHead();
+        if (null != head && BaseMsgType.SECURE_SOCKET_MESSAGE_REQ == head.getKind()) {
+            byte[] receBytes = head.getSlot();
             List<BigInteger> receCode = ISerializer.Serializer.INST.of().getObj(receBytes);
             String receMsg = rsa.decrypt(receCode);
             return Auth.checkHello(receMsg);
@@ -150,7 +146,7 @@ public final class SslPlugin<T> implements Plugin<T> {
         private static final String OK = "OK";
         private static final String FAIL = "FAIL";
 
-        private String receive; // 收到的信息
+        private String msg;  // 收到的信息
         private String send; // 发送的信息
         private String flag; //认证标志 OK/FAIL
         private String cipher; //后续通讯AEC的密钥
@@ -174,8 +170,7 @@ public final class SslPlugin<T> implements Plugin<T> {
          * @return
          */
         public static boolean isAuthSucc(String receive) {
-            Auth auth = decodeAuthResult(receive);
-            return Auth.OK.equals(auth.getFlag());
+            return Auth.OK.equals(receive);
         }
 
         /**
@@ -183,35 +178,50 @@ public final class SslPlugin<T> implements Plugin<T> {
          * @param receiveMsg
          * @return
          */
-        private static Auth decodeAuthResult(String receiveMsg) {
+        public static Auth decodeAuthResult(String receiveMsg) {
             Auth auth = new Auth();
             if (null != receiveMsg && receiveMsg != "") {
                 String[] receArr = receiveMsg.split("_");
-                auth.setReceive(receiveMsg);
+                auth.setMsg(receiveMsg);
                 auth.setFlag(receArr[0]);
                 auth.setCipher(receArr[1]);
             }
             return auth;
         }
 
-        public static String serverAuthSucc() {
-            String aecPwd = AesUtil.build().encode(AesUtil.DEFULT_KEY);
-            return OK + "_" + aecPwd;
+        public static Auth serverAuthSucc() {
+            String aecPwd = AesUtil.getRandomKey(8);
+            Auth auth = new Auth();
+            auth.setFlag(OK);
+            auth.setCipher(aecPwd);
+            auth.setMsg(OK + "_" + aecPwd);
+            return auth;
         }
 
         public static String serverAuthFail() {
             return FAIL;
         }
 
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("Auth{");
+            sb.append("msg='").append(msg).append('\'');
+            sb.append(", send='").append(send).append('\'');
+            sb.append(", flag='").append(flag).append('\'');
+            sb.append(", cipher='").append(cipher).append('\'');
+            sb.append(", type=").append(type);
+            sb.append('}');
+            return sb.toString();
+        }
         //========================================
 
 
-        public String getReceive() {
-            return receive;
+        public String getMsg() {
+            return msg;
         }
 
-        public void setReceive(String receive) {
-            this.receive = receive;
+        public void setMsg(String msg) {
+            this.msg = msg;
         }
 
         public String getSend() {

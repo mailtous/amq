@@ -25,8 +25,8 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
 
     @Override
     public void process0(AioPipe<BaseMessage> pipe, BaseMessage message) {
-        if(BaseMsgType.RE_CONNECT_RSP == message.getHead().getBaseMsgType()){ //服务端-->断线重连
-            String pipeId = new String(message.getHead().getInclude()).trim();
+        if(BaseMsgType.RE_CONNECT_RSP == message.getHead().getKind()){ //服务端-->断线重连
+            String pipeId = new String(message.getHead().getSlot()).trim();
             if (firstPipeId == "") { //第一次,保存最初的pipeID
                 logger.warn("服务端-->最初的pipeID:{}",pipeId);
                 firstPipeId = pipeId;
@@ -66,9 +66,7 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
     private void sendReplacePipeId(AioPipe aioPipe, String oldPipeId,String newPipeid) {
         logger.warn("服务器重启过了,更换PIPEID: {} -> {} ",oldPipeId,newPipeid);
         byte[] includeInfo = (oldPipeId+","+newPipeid).getBytes();
-        BaseMessage baseMessage = new BaseMessage();
-        BaseMessage.HeadMessage head = new BaseMessage.HeadMessage(BaseMsgType.RE_CONNECT_REQ, includeInfo);
-        baseMessage.setHead(head);
+        BaseMessage baseMessage = BaseMessage.ofHead(BaseMsgType.RE_CONNECT_REQ, includeInfo);
         aioPipe.write(baseMessage);
     }
 
@@ -168,10 +166,7 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
         if (this.pipe.isClose()) {
             reConnetion();
         }
-        BaseMessage baseMessage = new BaseMessage();
-        BaseMessage.HeadMessage head = new BaseMessage.HeadMessage(BaseMsgType.BYTE_ARRAY_MESSAGE_REQ);
-        baseMessage.setHead(head);
-        baseMessage.setBody(message);
+        BaseMessage baseMessage = BaseMessage.ofAll(BaseMsgType.BYTE_ARRAY_MESSAGE_REQ, null, message);
         return this.pipe.write(baseMessage);
     }
     private void reConnetion(){

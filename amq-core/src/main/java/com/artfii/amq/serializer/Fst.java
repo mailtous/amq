@@ -16,7 +16,7 @@ public class Fst implements ISerializer {
     FSTConfiguration fst_json = FSTConfiguration.createJsonConfiguration();
     public Fst() {
         fst.registerClass(BaseMessage.class);
-        fst.registerClass(BaseMessage.HeadMessage.class);
+        fst.registerClass(BaseMessage.Head.class);
         fst.registerClass(Message.class);
         fst.registerClass(Message.Stat.class);
         fst.registerClass(Message.Type.class);

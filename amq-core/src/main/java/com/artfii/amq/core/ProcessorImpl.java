@@ -352,10 +352,7 @@ public enum ProcessorImpl implements Processor {
     }
 
     private boolean write(AioPipe pipe, Message message) {
-        BaseMessage baseMessage = new BaseMessage();
-        BaseMessage.HeadMessage head = new BaseMessage.HeadMessage(BaseMsgType.BYTE_ARRAY_MESSAGE_REQ);
-        baseMessage.setHead(head);
-        baseMessage.setBody(message);
+        BaseMessage baseMessage = BaseMessage.ofAll(BaseMsgType.BYTE_ARRAY_MESSAGE_REQ, null, message);
         return pipe.write(baseMessage);
     }
 

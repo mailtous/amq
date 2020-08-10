@@ -93,7 +93,7 @@ public class AioServer<T> implements Runnable {
         if (config.isBannerEnabled()) {
             LOGGER.info(config.BANNER + "\r\n :: amq-socket ::\t(" + config.VERSION + ")");
         }
-        start0((AsynchronousSocketChannel channel)->new AioPipe<T>(channel, config));
+        start0((AsynchronousSocketChannel channel)->new AioPipe<T>(channel, config,config.isSsl(),config.isServer()));
     }
 
     /**
@@ -209,9 +209,7 @@ public class AioServer<T> implements Runnable {
      * @param pipe
      */
     private void sendPipeIdToClient(AioPipe pipe) {
-        BaseMessage baseMessage = new BaseMessage();
-        BaseMessage.HeadMessage head = new BaseMessage.HeadMessage(BaseMsgType.RE_CONNECT_RSP, String.valueOf(pipe.getId()).getBytes());
-        baseMessage.setHead(head);
+        BaseMessage baseMessage = BaseMessage.ofHead(BaseMsgType.RE_CONNECT_RSP, String.valueOf(pipe.getId()).getBytes());
         pipe.write(baseMessage);
     }
 
