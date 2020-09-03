@@ -19,7 +19,7 @@ import com.artfii.amq.core.aio.BaseMsgType;
 import com.artfii.amq.core.aio.State;
 import com.artfii.amq.core.aio.plugin.Plugin;
 import com.artfii.amq.serializer.ISerializer;
-import com.artfii.amq.tools.cipher.AesUtil;
+import com.artfii.amq.tools.cipher.Aes;
 import com.artfii.amq.tools.cipher.Rsa;
 
 import java.math.BigInteger;
@@ -73,7 +73,7 @@ public final class SslPlugin<T> implements Plugin<T> {
      *
      * @return
      */
-    public BaseMessage clientAuthInfo() {
+    public BaseMessage clientReqAuthInfo() {
         List<BigInteger> msg = rsa.encrypt(Auth.HELLO);
         byte[] headMsg = ISerializer.Serializer.INST.of().toByte(msg);
         BaseMessage baseMessage = BaseMessage.ofHead(BaseMsgType.SECURE_SOCKET_MESSAGE_REQ, headMsg);
@@ -190,7 +190,7 @@ public final class SslPlugin<T> implements Plugin<T> {
         }
 
         public static Auth serverAuthSucc() {
-            String aecPwd = AesUtil.getRandomKey(8);
+            String aecPwd = Aes.getRandomKey(8);
             Auth auth = new Auth();
             auth.setFlag(OK);
             auth.setCipher(aecPwd);

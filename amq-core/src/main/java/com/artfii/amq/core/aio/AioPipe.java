@@ -2,7 +2,7 @@ package com.artfii.amq.core.aio;
 
 import com.artfii.amq.core.Message;
 import com.artfii.amq.tools.RingBufferQueue;
-import com.artfii.amq.tools.cipher.AesUtil;
+import com.artfii.amq.tools.cipher.Aes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,8 +35,8 @@ public class AioPipe<T> implements Serializable {
     protected static final byte CLOSED = 0;
     protected static final byte CLOSING = -1;
     protected byte status = ENABLED;
-    public boolean IS_HANDSHAKE = false; //SSL握手认证成功.
-    public String MSG_CHIPER = ""; //SSL握手成功后,取得的AEC密钥
+    public boolean SSL_HANDSHAKE_SUCC = false; //SSL握手认证成功.
+    public String SSL_CHIPER = ""; //SSL握手成功后,取得的AEC密钥
 
     protected ByteBuffer readBuffer; //读缓冲
     protected ByteBuffer writeBuffer; //写缓冲
@@ -60,10 +60,6 @@ public class AioPipe<T> implements Serializable {
 
     public AioPipe(AsynchronousSocketChannel channel, AioServerConfig config, boolean ssl,boolean isClient) {
         init(channel, config, isClient, ssl);
-    }
-
-    public AioPipe(AsynchronousSocketChannel channel, AioServerConfig config,boolean ssl) {
-        init(channel, config, false, false);
     }
 
     public AioPipe(AsynchronousSocketChannel channel, AioServerConfig config) {
@@ -91,40 +87,42 @@ public class AioPipe<T> implements Serializable {
     }
 
     private T encodeOfHanded(T t) {
-        if (IS_HANDSHAKE && MSG_CHIPER != "") { //握手成功
+        if (SSL_HANDSHAKE_SUCC && SSL_CHIPER != "") { //握手成功
             BaseMessage message = (BaseMessage) t;
-            if (!isSSLMsg(message.getHead().getKind())) {
+            if (!isHandshakeMsg(message.getHead().getKind())) {
                 Message msg = message.getBody();
                 if (null != msg) {
                     String bodyMsg = (String) msg.getV();
-                    msg.setV(AesUtil.build(MSG_CHIPER).encode(bodyMsg));
-//                    System.err.println("DO PWD= "+MSG_CHIPER);
+                    msg.setV(Aes.build(SSL_CHIPER).encode(bodyMsg));
+//                    msg.setV(new Aes(SSL_CHIPER).encode(bodyMsg));
                 }
             }
         }
         return t;
-    }
-
-    private boolean isSSLMsg(int type) {
-        if (BaseMsgType.SECURE_SOCKET_MESSAGE_RSP == type) return true;
-        if (BaseMsgType.SECURE_SOCKET_MESSAGE_REQ == type) return true;
-        return false;
     }
 
     //解密握手之后的加密消息
     private T decodeOfHands(T t) {
-        if (IS_HANDSHAKE && MSG_CHIPER != "") {
+        if (SSL_HANDSHAKE_SUCC && SSL_CHIPER != "") {
             BaseMessage message = (BaseMessage) t;
-            if (!isSSLMsg(message.getHead().getKind())) {
-                System.err.println("type= " + message.getHead().getKind() + ", body: " + message.getBody()+" pwd:"+ MSG_CHIPER);
+            if (!isHandshakeMsg(message.getHead().getKind())) {
+//                System.err.println("type= " + message.getHead().getKind() + ", body: " + message.getBody()+" pwd:"+ SSL_CHIPER);
                 Message msg = message.getBody();
                 if (null != msg) {
                     String bodyMsg = (String) msg.getV();
-                    msg.setV(AesUtil.build(MSG_CHIPER).decode(bodyMsg));
+                    msg.setV(Aes.build(SSL_CHIPER).decode(bodyMsg));
+//                    msg.setV(new Aes(SSL_CHIPER).decode(bodyMsg));
                 }
             }
         }
         return t;
+    }
+
+
+    private boolean isHandshakeMsg(int type) {
+        if (BaseMsgType.SECURE_SOCKET_MESSAGE_RSP == type) return true;
+        if (BaseMsgType.SECURE_SOCKET_MESSAGE_REQ == type) return true;
+        return false;
     }
 
     /**
@@ -135,15 +133,10 @@ public class AioPipe<T> implements Serializable {
      * @throws IOException
      */
     public final boolean write(T t) {
-        continueRead();
-        if(IS_HANDSHAKE){
+        if(SSL_HANDSHAKE_SUCC){
             encodeOfHanded(t);
-            boolean writed = writeBuffer(ioServerConfig.getProtocol().encode(t));
-            return writed;
-        }else {
-            boolean writed = writeBuffer(ioServerConfig.getProtocol().encode(t));
-            return writed;
         }
+        return writeBuffer(ioServerConfig.getProtocol().encode(t));
     }
 
     public final boolean writeBuffer(ByteBuffer buffer) {

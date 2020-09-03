@@ -304,6 +304,10 @@ public class Message<K extends Message.Key, V> implements KV<K, V> {
             this.sendNode = sendNode;
         }
 
+        public static Key ofDef() {
+            return new Key(createId(""),"");
+        }
+
         //========================= 羁绊是什么意思呢？===============================
 
         public String getId() {

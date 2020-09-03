@@ -38,14 +38,13 @@ public class AioSSLMqClient<T> extends AioClient<T> {
         //连接成功则构造AIOSession对象
         aioPipe = new AioPipe(socketChannel, config,true,true);
         //发送握手消息
-        boolean writed = aioPipe.write(sslPlugin.clientAuthInfo());
+        boolean writed = aioPipe.write(sslPlugin.clientReqAuthInfo());
         //检查是否握手成功
         if (writed) {
-            aioPipe.initSession();
             boolean isWaiting = true;
             while (isWaiting) {
                 aioPipe.initSession();
-                if (aioPipe.IS_HANDSHAKE) {
+                if (aioPipe.SSL_HANDSHAKE_SUCC) {
                     isWaiting = false;
                 }
             }

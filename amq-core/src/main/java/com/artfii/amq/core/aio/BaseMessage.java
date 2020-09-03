@@ -39,7 +39,7 @@ public class BaseMessage implements Serializable {
     public static BaseMessage ofBody(int baseMsgType, String body){
         BaseMessage bm = new BaseMessage();
         bm.setHead(new BaseMessage.Head(baseMsgType, null));
-        bm.setBody(Message.ofDef(new Message.Key(),body));
+        bm.setBody(Message.ofDef(Message.Key.ofDef(),body));
         return bm;
     }
 
