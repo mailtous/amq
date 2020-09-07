@@ -14,7 +14,7 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.ExecutionException;
 
 /**
- * Func :
+ * Func : SSL 客户端
  *
  * @author: leeton on 2019/2/25.
  */

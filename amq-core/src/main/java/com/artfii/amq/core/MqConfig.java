@@ -74,19 +74,8 @@ public enum MqConfig {
     public boolean start_mq_admin = true;
 
     //========================== SSL CONFIG =====================================
-
-    public String amq_client_jks_file;
-    public String amq_client_jks_pwd;
-    public String amq_client_trust_file;
-    public String amq_client_trust_pwd;
-    //
-    public String amq_server_jks_file;
-    public String amq_server_jks_pwd;
-    public String amq_server_trust_file;
-    public String amq_server_trust_pwd;
-
-    public String amq_pubkey_file;
-    public String amq_selftkey_file;
+    public String amq_pubkey_file;         // AMQ SSL 公钥文件
+    public String amq_selftkey_file;       // AMQ SSL 私钥文件
 
     //========================== DB CONFIG =====================================
     // MAPDB 数据库文件

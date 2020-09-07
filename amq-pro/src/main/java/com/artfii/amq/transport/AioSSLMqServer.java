@@ -18,7 +18,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Func :MQ 服务端
+ * Func : SSL 服务端
  *
  * @author: leeton on 2019/2/22.
  */
@@ -42,7 +42,7 @@ public class AioSSLMqServer<T> extends AioServer {
 
         try {
             this.startCheckAlive(MqConfig.inst.start_check_client_alive)
-    //            .startMonitorPlugin(MqConfig.inst.start_flow_monitor)
+                .startMonitorPlugin(MqConfig.inst.start_flow_monitor)
                     .setResumeSubcribe(true);
             //
             pool.submit(this);
