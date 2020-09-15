@@ -67,22 +67,23 @@ public class AioPipe<T> implements Serializable {
     }
 
     public AioPipe init(AsynchronousSocketChannel channel, AioServerConfig config, boolean isClient, boolean ssl) {
+        this.id = hashCode();
         this.isClient = isClient;
         this.ssl = ssl;
         this.channel = channel;
         this.ioServerConfig = config;
-        this.writeCacheQueue = new RingBufferQueue<ByteBuffer>(config.getQueueSize());
         //初始化状态机
         config.getProcessor().stateEvent(this, State.NEW_PIPE, null);
+        //创建读写缓冲区
+        this.writeCacheQueue = new RingBufferQueue<ByteBuffer>(config.getQueueSize());
         this.readBuffer = DirectBufferUtil.allocateDirectBuffer(config.getDirctBufferSize());
-        this.id = hashCode();
         return this;
     }
 
     /**
-     * 初始化AioSession
+     * 初始化 AioPIPE
      */
-    public void initSession() {
+    public void startRead() {
         continueRead();
     }
 
@@ -94,7 +95,6 @@ public class AioPipe<T> implements Serializable {
                 if (null != msg) {
                     String bodyMsg = (String) msg.getV();
                     msg.setV(Aes.build(SSL_CHIPER).encode(bodyMsg));
-//                    msg.setV(new Aes(SSL_CHIPER).encode(bodyMsg));
                 }
             }
         }
@@ -111,7 +111,6 @@ public class AioPipe<T> implements Serializable {
                 if (null != msg) {
                     String bodyMsg = (String) msg.getV();
                     msg.setV(Aes.build(SSL_CHIPER).decode(bodyMsg));
-//                    msg.setV(new Aes(SSL_CHIPER).decode(bodyMsg));
                 }
             }
         }

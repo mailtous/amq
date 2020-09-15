@@ -3,10 +3,10 @@ package com.artfii.amq.core;
 import com.artfii.amq.core.aio.Call;
 
 /**
- * FUNC: MqClientAction
+ * FUNC: MqAction
  * Created by leeton on 2019/1/15.
  */
-public interface MqClientAction {
+public interface MqAction {
 
     /**
      * 普通的发布消息,适合大批量发送的场景

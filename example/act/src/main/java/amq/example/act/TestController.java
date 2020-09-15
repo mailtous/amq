@@ -2,7 +2,7 @@ package amq.example.act;
 
 import act.controller.Controller;
 import com.artfii.amq.core.Message;
-import com.artfii.amq.core.MqClientAction;
+import com.artfii.amq.core.MqAction;
 import com.artfii.amq.tester.TestUser;
 import org.osgl.mvc.annotation.GetAction;
 
@@ -20,7 +20,7 @@ import java.util.Map;
 public class TestController {
 
     @Inject
-    private MqClientAction amqClient;
+    private MqAction amqClient;
 
     @GetAction("/")
     public String hello(){

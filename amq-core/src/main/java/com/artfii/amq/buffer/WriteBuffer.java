@@ -239,7 +239,7 @@ public class WriteBuffer extends OutputStream {
     }
 
     /**
-     * 写入内容并刷新缓冲区。在{@link org.smartboot.socket.MessageProcessor#process(AioSession, Object)}执行的write操作可无需调用该方法，业务执行完毕后框架本身会自动触发flush。
+     * 写入内容并刷新缓冲区。
      * 调用该方法后数据会及时的输出到对端，如果再循环体中通过该方法往某个通道中写入数据将无法获得最佳性能表现，
      *
      * @param b 待输出数据

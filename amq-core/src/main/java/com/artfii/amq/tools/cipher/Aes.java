@@ -116,6 +116,7 @@ public class Aes {
         return cipher;
     }
 
+    final static String plantTxt = "!@#$%^&*[]ABCDEFGHIJKLMNOPQRSTWXYZ1234567890abcdefghijklmnopqrstwxyz"; //68
     /**
      * 产生一个随机密码
      *
@@ -123,12 +124,11 @@ public class Aes {
      * @return
      */
     public static String getRandomKey(int len) {
-        final String plantTxt = "!@#$%^&*[]ABCDEFGHIJKLMNOPQRSTWXYZ1234567890abcdefghijklmnopqrstwxyz"; //68
         char[] plantChar = plantTxt.toCharArray();
         StringBuilder box = new StringBuilder(len);
         int planttxtLen = plantTxt.length();
+        Random r = new Random();
         for (int i = 0; i < len; i++) {
-            Random r = new Random();
             box.append(plantChar[r.nextInt(planttxtLen)]);
         }
 

@@ -166,18 +166,17 @@ public class AioServer<T> implements Runnable {
      * @param channel
      */
     private AioPipe createPipe(AsynchronousSocketChannel channel) {
-        //连接成功则构造AIOSession对象
+        //连接成功则构造 AIO-PIPE 对象
         AioPipe<T> pipe = null;
         try {
             pipe = aioPipeFunction.apply(channel);
-            pipe.initSession();
-//            System.err.println("create pipid = "+ pipe.getId());
-/*            if (null != pipe) {
+            pipe.startRead();
+            if (null != pipe) {
                 channelAliveMap.putIfAbsent(pipe.getId(), pipe);
                 if(resumeSubcribe){ //配置还原订阅,则启用断链重连
                     sendPipeIdToClient(pipe);
                 }
-            }*/
+            }
         } catch (Exception e1) {
             LOGGER.debug(e1.getMessage(), e1);
             if (null == pipe) {

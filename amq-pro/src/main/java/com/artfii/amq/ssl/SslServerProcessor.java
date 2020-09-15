@@ -27,6 +27,7 @@ public class SslServerProcessor extends AioBaseProcessor<BaseMessage> {
                     pipe.SSL_CHIPER = auth.getCipher();
                     pipe.write(sslPlugin.serverRspAuthResult(auth.getMsg()));
                 }else {
+                    logger.warn("client auth FAIL , CLOSE PIPE.");
                     pipe.close();
                 }
             }

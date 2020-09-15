@@ -1,48 +1,53 @@
 package com.artfii.amq.core.aio.plugin;
 
 import com.artfii.amq.core.aio.AioPipe;
+import com.artfii.amq.core.aio.BaseMessage;
+import com.artfii.amq.core.aio.BaseMsgType;
+import com.artfii.amq.core.aio.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * Func : 断链重连
  *
  * @author: leeton on 2019/5/27.
  */
-public class ClientReconectPlugin extends TimerTask {
+public class ClientReconectPlugin implements Plugin {
     private static final Logger logger = LoggerFactory.getLogger(ClientReconectPlugin.class);
-    public static Timer timer = null;
-    private static AioPipe aioPipe;
-    private static ClientReconectPlugin clientReconectPlugin = null;
 
-    private ClientReconectPlugin() {
-    }
-
-    public static ClientReconectPlugin start(AioPipe pipe) {
-        if (null == clientReconectPlugin) {
-            clientReconectPlugin = new ClientReconectPlugin();
-            clientReconectPlugin.aioPipe = pipe;
-            runTask();
-        }
-        return clientReconectPlugin;
-    }
-
-    private static synchronized void runTask() {
-        if (null == timer) {
-            timer = new Timer("Reconnect Timer", true);
-            timer.scheduleAtFixedRate(clientReconectPlugin, 50, 5000);
-        }
-    }
+    private static String firstPipeId = "";
 
     @Override
-    public void run() {
-        if (aioPipe.isClose()) {//如果通道已经断开,发起重连
-            logger.warn("Client:{} try reconect to server.", aioPipe.getId());
-            System.err.println("Client:{} try reconect to server."+ aioPipe.getId());
-            aioPipe = aioPipe.reConnect();
+    public boolean preProcess(AioPipe pipe, Object message) {
+        BaseMessage msg = (BaseMessage) message;
+        if (BaseMsgType.RE_CONNECT_RSP == msg.getHead().getKind()) { //收到服务端响应断链重连的消息
+            String pipeId = new String(msg.getHead().getSlot()).trim();
+            if (firstPipeId == "") { //第一次,保存最初的pipeID
+                logger.warn("服务端-->最初的pipeID:{}", pipeId);
+                firstPipeId = pipeId;
+            } else { // 第二次以上说明是服务器重启了,需要更换 pipeId
+                sendReplacePipeId(pipe, firstPipeId, pipeId);
+                firstPipeId = pipeId;
+            }
         }
+        return true;
+    }
+
+    /**
+     * 发送更换 PIPEID 的消息
+     *
+     * @param aioPipe
+     */
+    private void sendReplacePipeId(AioPipe aioPipe, String oldPipeId, String newPipeid) {
+        logger.warn("服务器重启过了,更换PIPEID: {} -> {} ", oldPipeId, newPipeid);
+        byte[] includeInfo = (oldPipeId + "," + newPipeid).getBytes();
+        BaseMessage baseMessage = BaseMessage.ofHead(BaseMsgType.RE_CONNECT_REQ, includeInfo);
+        aioPipe.write(baseMessage);
+    }
+
+
+    @Override
+    public void stateEvent(State State, AioPipe pipe, Throwable throwable) {
+
     }
 }

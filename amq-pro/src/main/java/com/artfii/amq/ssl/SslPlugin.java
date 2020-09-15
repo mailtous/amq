@@ -9,8 +9,6 @@
 
 package com.artfii.amq.ssl;
 
-import com.artfii.amq.buffer.BufferFactory;
-import com.artfii.amq.buffer.BufferPagePool;
 import com.artfii.amq.conf.PropUtil;
 import com.artfii.amq.core.MqConfig;
 import com.artfii.amq.core.aio.AioPipe;
@@ -21,33 +19,32 @@ import com.artfii.amq.core.aio.plugin.Plugin;
 import com.artfii.amq.serializer.ISerializer;
 import com.artfii.amq.tools.cipher.Aes;
 import com.artfii.amq.tools.cipher.Rsa;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.util.List;
 
 /**
  * SSL/TLS通信插件
- *
- * @author 三刀
- * @version V1.0 , 2020/4/17
+ * @function : 加载自定义 RSA 生成的公钥/私钥,加密/解密 SSL通讯的握手信息
+ * @author leeton
  */
-public final class SslPlugin<T> implements Plugin<T> {
+public final class SslPlugin implements Plugin<BaseMessage> {
+    private static Logger logger = LoggerFactory.getLogger(SslPlugin.class);
     public static BigInteger[] PUB_KEY = null;
     public static BigInteger[] SELFT_KEY = null;
     private static Rsa rsa = null;
-    private BufferPagePool bufferPagePool;
-
     private static SslPlugin sslPlugin = null;
 
     public static SslPlugin build() {
         if (null == sslPlugin) {
-            sslPlugin = new SslPlugin<>();
+            sslPlugin = new SslPlugin();
         }
         return sslPlugin;
     }
 
     public SslPlugin() {
-        this.bufferPagePool = BufferFactory.DISABLED_BUFFER_FACTORY.create();
         initRSA();
     }
 
@@ -94,20 +91,21 @@ public final class SslPlugin<T> implements Plugin<T> {
     }
 
     /**
-     * 服务端接收握手信息
+     * 客户端接收握手信息
      *
      * @param handMessage
      * @return
      */
-    public String clientReceMsg(BaseMessage handMessage) {
+    public SslPlugin.Auth clientReadAuthResult(BaseMessage handMessage) {
+        SslPlugin.Auth auth = Auth.ofFail();
         BaseMessage.Head head = handMessage.getHead();
         if (null != head && BaseMsgType.SECURE_SOCKET_MESSAGE_RSP == head.getKind()) {
             byte[] receBytes = head.getSlot();
             List<BigInteger> receCode = ISerializer.Serializer.INST.of().getObj(receBytes,List.class);
             String receMsg = rsa.decrypt(receCode);
-            return receMsg;
+            auth = SslPlugin.Auth.decodeAuthResult(receMsg);
         }
-        return "";
+        return auth;
     }
 
     /**
@@ -126,21 +124,20 @@ public final class SslPlugin<T> implements Plugin<T> {
         return false;
     }
 
-    public BufferPagePool getBufferPagePool() {
-        return bufferPagePool;
-    }
 
     @Override
-    public boolean preProcess(AioPipe<T> pipe, T message) {
-
+    public boolean preProcess(AioPipe<BaseMessage> pipe, BaseMessage message) {
         return true;
     }
 
     @Override
-    public void stateEvent(State State, AioPipe<T> pipe, Throwable throwable) {
+    public void stateEvent(State State, AioPipe pipe, Throwable throwable) {
 
     }
 
+    /**
+     * 认证
+     */
     public static class Auth{
         private static final String HELLO = "HI-AMQ";
         private static final String OK = "OK";
@@ -148,9 +145,15 @@ public final class SslPlugin<T> implements Plugin<T> {
 
         private String msg;  // 收到的信息
         private String send; // 发送的信息
-        private String flag; //认证标志 OK/FAIL
+        private String flag; // 认证标志 OK/FAIL
         private String cipher; //后续通讯AEC的密钥
         private BaseMsgType type; //消息类别
+
+        public static Auth ofFail() {
+            Auth auth = new Auth();
+            auth.setFlag(FAIL);
+            return auth;
+        }
 
 
         /**
@@ -196,10 +199,6 @@ public final class SslPlugin<T> implements Plugin<T> {
             auth.setCipher(aecPwd);
             auth.setMsg(OK + "_" + aecPwd);
             return auth;
-        }
-
-        public static String serverAuthFail() {
-            return FAIL;
         }
 
         @Override

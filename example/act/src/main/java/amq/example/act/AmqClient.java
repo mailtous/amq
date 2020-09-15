@@ -37,7 +37,7 @@ public class AmqClient extends MqClientProcessor {
     public static class Module extends org.osgl.inject.Module {
         @Override
         protected void configure() {
-            bind(MqClientAction.class).in(Singleton.class).to(()->new AmqClient());
+            bind(MqAction.class).in(Singleton.class).to(()->new AmqClient());
         }
     }
 

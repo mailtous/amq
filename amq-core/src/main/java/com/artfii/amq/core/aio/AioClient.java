@@ -83,10 +83,10 @@ public class AioClient<T> implements Runnable {
         }
         //bind host
         socketChannel.connect(new InetSocketAddress(config.getHost(), config.getPort())).get();
-        //连接成功则构造AIOSession对象
+        //连接成功则构造 AIO-PIPE 对象
         pipe = new AioPipe<>(socketChannel, config);
-        pipe.initSession();
         pipe.setAioClient(this);
+        pipe.startRead();
         //断线重连
 //        ClientReconectPlugin.start(pipe);
         logger.warn("amq-socket client started on {} {}, pipeId:{}", config.getHost(), config.getPort(),pipe.getId());
@@ -131,7 +131,7 @@ public class AioClient<T> implements Runnable {
     /**
      * 停止客户端服务.
      * <p>
-     * 调用该方法会触发AioSession的close方法，并且如果当前客户端若是通过执行{@link AioClient#start()}方法构建的，同时会触发asynchronousChannelGroup的shutdown动作。
+     * 调用该方法会触发 AIO-PIPE 的close方法，并且如果当前客户端若是通过执行{@link AioClient#start()}方法构建的，同时会触发asynchronousChannelGroup的shutdown动作。
      * </p>
      */
     public final void shutdown() {

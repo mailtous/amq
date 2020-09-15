@@ -1,7 +1,6 @@
 package com.artfii.amq.core;
 
 import com.artfii.amq.core.aio.*;
-import org.osgl.util.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,62 +11,16 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Func :
  *
- * @author: leeton on 2019/2/25.
+ * @author: leeton on 2020/9/9.
  */
-public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements MqAction {
-    private static Logger logger = LoggerFactory.getLogger(MqClientProcessor.class);
-
+public class BaseAction implements MqAction {
+    private static Logger logger = LoggerFactory.getLogger(BaseAction.class);
     private AioPipe<BaseMessage> pipe;
     private static Map<String, Call> callBackMap = new ConcurrentHashMap<>(); //客户端返回的消息包装
     private static Map<String, CompletableFuture<Message>> futureResultMap = new ConcurrentHashMap<>(); //客户端返回的消息包装(仅一次)
-    //
-    private static String firstPipeId = "";
 
-    @Override
-    public void process0(AioPipe<BaseMessage> pipe, BaseMessage message) {
-        if(BaseMsgType.RE_CONNECT_RSP == message.getHead().getKind()){ //服务端-->断线重连
-            String pipeId = new String(message.getHead().getSlot()).trim();
-            if (firstPipeId == "") { //第一次,保存最初的pipeID
-                logger.warn("服务端-->最初的pipeID:{}",pipeId);
-                firstPipeId = pipeId;
-            }else { // 第二次以上说明是服务器重启了,需要更换 pipeId
-                sendReplacePipeId(pipe, firstPipeId, pipeId);
-                firstPipeId = pipeId;
-            }
-        }else {
-            prcessMsg(message);
-        }
-    }
-
-    private void prcessMsg(BaseMessage baseMessage) {
-        try {
-            Message message = baseMessage.getBody();
-            if (null != message) {
-                String subscribeId = message.getSubscribeId();
-                if (C.notEmpty(callBackMap) && null != callBackMap.get(subscribeId)) {
-                    autoAckOfSubribe(message);
-                    Call call = callBackMap.get(subscribeId);
-                    if (null != call) {
-                        call.back(message);
-                    }
-                }
-                if (C.notEmpty(futureResultMap) && null != futureResultMap.get(subscribeId)) {
-                    futureResultMap.get(subscribeId).complete(message);
-                }
-            }
-        } catch (Exception e) {
-            logger.error("[C] Client prcess decode exception: ", e);
-        }
-    }
-    /**
-     * 发送更换 PIPEID 的消息
-     * @param aioPipe
-     */
-    private void sendReplacePipeId(AioPipe aioPipe, String oldPipeId,String newPipeid) {
-        logger.warn("服务器重启过了,更换PIPEID: {} -> {} ",oldPipeId,newPipeid);
-        byte[] includeInfo = (oldPipeId+","+newPipeid).getBytes();
-        BaseMessage baseMessage = BaseMessage.ofHead(BaseMsgType.RE_CONNECT_REQ, includeInfo);
-        aioPipe.write(baseMessage);
+    public BaseAction(AioPipe<BaseMessage> pipe) {
+        this.pipe = pipe;
     }
 
     @Override
@@ -81,6 +34,7 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
         return false;
     }
 
+    @Override
     public <M> boolean publish(String topic, M data,Message.Life life) {
         try {
             Message message = Message.buildCommonMessage(topic, data, getNode());
@@ -134,6 +88,7 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
         callBackMap.put(subscribe.getSubscribeId(), acceptJobThenExecute);
     }
 
+    @Override
     public <V> boolean finishJob(String topic, V v) {
         try {
             Message<Message.Key, V> finishJob = Message.buildFinishJob(topic, v, getNode());
@@ -173,21 +128,6 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
         this.pipe = this.pipe.reConnect();
     }
 
-    @Override
-    public void stateEvent0(AioPipe<BaseMessage> pipe, State state, Throwable throwable) {
-        switch (state) {
-            case NEW_PIPE:
-                this.pipe = pipe;
-                break;
-        }
-        if (null != throwable) {
-            throwable.printStackTrace();
-        }
-        if (State.NEW_PIPE != state) {
-            logger.warn("[C]消息处理,状态:{}, EX:{}", state.toString(), throwable);
-        }
-    }
-
     private void removeFutureResultMap(String key) {
         futureResultMap.remove(key);
     }
@@ -202,6 +142,5 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
         }
         return -1;
     }
-
 
 }

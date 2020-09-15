@@ -47,7 +47,7 @@ public enum State {
     /**
      * 会话关闭成功。
      *
-     * <p>AioSession关闭成功</p>
+     * <p> AIO-PIPE 关闭成功</p>
      */
     PIPE_CLOSED,
     /**

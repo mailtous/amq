@@ -1,7 +1,7 @@
 package amq.example.springboot;
 
 import com.artfii.amq.core.Message;
-import com.artfii.amq.core.MqClientAction;
+import com.artfii.amq.core.MqAction;
 import com.artfii.amq.tester.TestUser;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +21,7 @@ import java.util.Map;
 public class TestController {
 
     @Resource
-    private MqClientAction amqClient;
+    private MqAction amqClient;
 
     @RequestMapping("/")
     public String hello(Model model){

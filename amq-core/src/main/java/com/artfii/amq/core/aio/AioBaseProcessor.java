@@ -3,12 +3,8 @@ package com.artfii.amq.core.aio;
 import com.artfii.amq.core.aio.plugin.Monitor;
 import com.artfii.amq.core.aio.plugin.MonitorPlugin;
 import com.artfii.amq.core.aio.plugin.Plugin;
-import com.artfii.amq.core.aio.plugin.Monitor;
-import com.artfii.amq.core.aio.plugin.MonitorPlugin;
-import com.artfii.amq.core.aio.plugin.Plugin;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedList;
 
 /**
  * Func :
@@ -17,7 +13,7 @@ import java.util.Set;
  */
 public abstract class AioBaseProcessor<T> implements AioProcessor<T> {
 
-    private Set<Plugin> plugins = new HashSet<>();
+    private LinkedList<Plugin> plugins = new LinkedList<>();
     private Monitor monitor ;
 
     @Override
@@ -54,7 +50,7 @@ public abstract class AioBaseProcessor<T> implements AioProcessor<T> {
         }
     }
 
-    public Set<Plugin> getPlugins() {
+    public LinkedList<Plugin> getPlugins() {
         return plugins;
     }
 
