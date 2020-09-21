@@ -1,6 +1,7 @@
 package com.artfii.amq.core.aio;
 
 import com.artfii.amq.core.Message;
+import com.artfii.amq.serializer.ISerializer;
 import com.artfii.amq.tools.RingBufferQueue;
 import com.artfii.amq.tools.cipher.Aes;
 import org.slf4j.Logger;
@@ -54,6 +55,7 @@ public class AioPipe<T> implements Serializable {
     private AioClient aioClient;
     private boolean isClient;
     private boolean ssl;
+    private ISerializer serializer = ISerializer.Serializer.INST.of();
 
     public AioPipe() {
     }
@@ -93,8 +95,10 @@ public class AioPipe<T> implements Serializable {
             if (!isHandshakeMsg(message.getHead().getKind())) {
                 Message msg = message.getBody();
                 if (null != msg) {
-                    String bodyMsg = (String) msg.getV();
-                    msg.setV(Aes.build(SSL_CHIPER).encode(bodyMsg));
+                    if(null != msg.getV()){//内容序列化为byte,再加密
+                        byte[] v = serializer.toByte(msg.getV());
+                        msg.setV(Aes.build(SSL_CHIPER).encode(v));
+                    }
                 }
             }
         }
@@ -102,15 +106,18 @@ public class AioPipe<T> implements Serializable {
     }
 
     //解密握手之后的加密消息
-    private T decodeOfHands(T t) {
+    private T decodeOfHanded(T t) {
         if (SSL_HANDSHAKE_SUCC && SSL_CHIPER != "") {
             BaseMessage message = (BaseMessage) t;
             if (!isHandshakeMsg(message.getHead().getKind())) {
 //                System.err.println("type= " + message.getHead().getKind() + ", body: " + message.getBody()+" pwd:"+ SSL_CHIPER);
                 Message msg = message.getBody();
                 if (null != msg) {
-                    String bodyMsg = (String) msg.getV();
-                    msg.setV(Aes.build(SSL_CHIPER).decode(bodyMsg));
+                    if(null != msg.getV()){//收到的内容(byte)先解密,再反序列化为对象
+                        byte[] decodeByte = Aes.build(SSL_CHIPER).decode((byte[]) msg.getV());
+                        Object v = serializer.getObj(decodeByte);
+                        msg.setV(v);
+                    }
                 }
             }
         }
@@ -256,7 +263,7 @@ public class AioPipe<T> implements Serializable {
 
             try {
                 //解码握手之后的加密消息
-                decodeOfHands(dataEntry);
+                decodeOfHanded(dataEntry);
                 // 对已解码的信息做预处理
                 ioServerConfig.getProcessor().process(this, dataEntry);
             } catch (Exception e) {

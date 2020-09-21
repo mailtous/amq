@@ -15,6 +15,5 @@ public interface AioProcessor<T> {
     void stateEvent(AioPipe<T> pipe, State state, Throwable throwable);
     void addPlugin(Plugin plugin);
     LinkedList<Plugin> getPlugins();
-
     Monitor getMonitor();
 }

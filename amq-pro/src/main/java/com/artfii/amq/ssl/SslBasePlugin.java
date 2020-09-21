@@ -11,11 +11,8 @@ package com.artfii.amq.ssl;
 
 import com.artfii.amq.conf.PropUtil;
 import com.artfii.amq.core.MqConfig;
-import com.artfii.amq.core.aio.AioPipe;
 import com.artfii.amq.core.aio.BaseMessage;
 import com.artfii.amq.core.aio.BaseMsgType;
-import com.artfii.amq.core.aio.State;
-import com.artfii.amq.core.aio.plugin.Plugin;
 import com.artfii.amq.serializer.ISerializer;
 import com.artfii.amq.tools.cipher.Aes;
 import com.artfii.amq.tools.cipher.Rsa;
@@ -30,21 +27,21 @@ import java.util.List;
  * @function : 加载自定义 RSA 生成的公钥/私钥,加密/解密 SSL通讯的握手信息
  * @author leeton
  */
-public final class SslPlugin implements Plugin<BaseMessage> {
-    private static Logger logger = LoggerFactory.getLogger(SslPlugin.class);
+public class SslBasePlugin {
+    private static Logger logger = LoggerFactory.getLogger(SslBasePlugin.class);
     public static BigInteger[] PUB_KEY = null;
     public static BigInteger[] SELFT_KEY = null;
     private static Rsa rsa = null;
-    private static SslPlugin sslPlugin = null;
+    private static SslBasePlugin sslPlugin = null;
 
-    public static SslPlugin build() {
+    public synchronized static SslBasePlugin build() {
         if (null == sslPlugin) {
-            sslPlugin = new SslPlugin();
+            sslPlugin = new SslBasePlugin();
         }
         return sslPlugin;
     }
 
-    public SslPlugin() {
+    public SslBasePlugin() {
         initRSA();
     }
 
@@ -96,14 +93,14 @@ public final class SslPlugin implements Plugin<BaseMessage> {
      * @param handMessage
      * @return
      */
-    public SslPlugin.Auth clientReadAuthResult(BaseMessage handMessage) {
-        SslPlugin.Auth auth = Auth.ofFail();
+    public SslBasePlugin.Auth clientReadAuthResult(BaseMessage handMessage) {
+        SslBasePlugin.Auth auth = Auth.ofFail();
         BaseMessage.Head head = handMessage.getHead();
         if (null != head && BaseMsgType.SECURE_SOCKET_MESSAGE_RSP == head.getKind()) {
             byte[] receBytes = head.getSlot();
             List<BigInteger> receCode = ISerializer.Serializer.INST.of().getObj(receBytes,List.class);
             String receMsg = rsa.decrypt(receCode);
-            auth = SslPlugin.Auth.decodeAuthResult(receMsg);
+            auth = SslBasePlugin.Auth.decodeAuthResult(receMsg);
         }
         return auth;
     }
@@ -122,17 +119,6 @@ public final class SslPlugin implements Plugin<BaseMessage> {
             return Auth.checkHello(receMsg);
         }
         return false;
-    }
-
-
-    @Override
-    public boolean preProcess(AioPipe<BaseMessage> pipe, BaseMessage message) {
-        return true;
-    }
-
-    @Override
-    public void stateEvent(State State, AioPipe pipe, Throwable throwable) {
-
     }
 
     /**
@@ -192,7 +178,7 @@ public final class SslPlugin implements Plugin<BaseMessage> {
             return auth;
         }
 
-        public static Auth serverAuthSucc() {
+        public static Auth buildServerAuthSucc() {
             String aecPwd = Aes.getRandomKey(8);
             Auth auth = new Auth();
             auth.setFlag(OK);

@@ -2,13 +2,13 @@ package com.artfii.amq.transport;
 
 import com.artfii.amq.core.MqConfig;
 import com.artfii.amq.core.MqScheduler;
+import com.artfii.amq.core.MqServerProcessor;
 import com.artfii.amq.core.ProcessorImpl;
 import com.artfii.amq.core.aio.AioProtocol;
 import com.artfii.amq.core.aio.AioServer;
 import com.artfii.amq.http.AioHttpServer;
 import com.artfii.amq.http.HttpServer;
-import com.artfii.amq.ssl.SslPlugin;
-import com.artfii.amq.ssl.SslServerProcessor;
+import com.artfii.amq.ssl.SslServerPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,10 +32,11 @@ public class AioSSLMqServer<T> extends AioServer {
     private ExecutorService pool = Executors.newFixedThreadPool(MqConfig.inst.server_connect_thread_pool_size);
 
     private AioSSLMqServer() {
-        super(MqConfig.inst.host, MqConfig.inst.port, new AioProtocol(), new SslServerProcessor());
+        super(MqConfig.inst.host, MqConfig.inst.port, new AioProtocol(), new MqServerProcessor());
         config.setSsl(true);
         config.setServer(true);
-        config.getProcessor().addPlugin(new SslPlugin());
+        //服务器启动,优先加载 SslServerPlugin
+        config.getProcessor().addPlugin(new SslServerPlugin());
     }
 
     public void start() {
@@ -80,7 +81,7 @@ public class AioSSLMqServer<T> extends AioServer {
             sc.useDelimiter("/n");
             System.out.println();
             System.out.println("=======================================");
-            System.out.println("AMQ(SSL)已启动,(消息端口:" + config.host+ "),(管理端口:" + config.port + ")");
+            System.out.println("AMQ(SSL)已启动,(地址:" + config.host+ ":" + config.port + ")");
             System.out.println("如果想安全退出,请输入命令: quit");
             System.out.println("=======================================");
             System.out.println();

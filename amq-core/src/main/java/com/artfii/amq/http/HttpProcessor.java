@@ -8,7 +8,7 @@ import com.artfii.amq.core.aio.plugin.Plugin;
 import com.artfii.amq.http.routes.Controller;
 import com.artfii.amq.http.routes.Router;
 
-import java.util.Set;
+import java.util.LinkedList;
 
 /**
  * Func : Http 服务端处理中心
@@ -41,7 +41,7 @@ public class HttpProcessor implements AioProcessor<Http> {
     }
 
     @Override
-    public Set<Plugin> getPlugins() {
+    public LinkedList<Plugin> getPlugins() {
         return null;
     }
 

@@ -1,4 +1,4 @@
-package amq.example.springboot.ssl;
+package amq.example.springboot;
 
 
 import com.artfii.amq.transport.AioSSLMqServer;

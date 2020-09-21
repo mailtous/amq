@@ -62,18 +62,19 @@ public class Aes {
      * @Description Aes encrypt
      */
     public String encode(String str) {
+        byte[] encryptBytes = encode(str.getBytes());
+        String base64Str = new String(Base64.getEncoder().encode(encryptBytes));
+        return base64Str;
+    }
+
+    public byte[] encode(byte[] src) {
         byte[] encryptBytes = null;
-        String encryptStr = null;
         try {
             Cipher cipher= getChipher(Cipher.ENCRYPT_MODE);
-            encryptBytes = cipher.doFinal(str.getBytes());
-            if (encryptBytes != null) {
-                encryptStr = new String(Base64.getEncoder().encode(encryptBytes));
-            }
+            return encryptBytes = cipher.doFinal(src);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return encryptStr;
     }
 
     /**
@@ -82,19 +83,20 @@ public class Aes {
      * @Description Aes decrypt
      */
     public String decode(String str) {
+        byte[] decryptBytes = Base64.getDecoder().decode(str);
+        decryptBytes = decode(decryptBytes);
+        return null == decryptBytes?"": new String(decryptBytes);
+    }
+
+    public byte[] decode(byte[] src) {
         byte[] decryptBytes = null;
-        String decryptStr = null;
         try {
             Cipher cipher= getChipher(Cipher.DECRYPT_MODE);
-            byte[] scrBytes = Base64.getDecoder().decode(str);
-            decryptBytes = cipher.doFinal(scrBytes);
+            decryptBytes = cipher.doFinal(src);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        if (decryptBytes != null) {
-            decryptStr = new String(decryptBytes);
-        }
-        return decryptStr;
+        return decryptBytes;
     }
 
     private Cipher getChipher(int model){
@@ -162,9 +164,10 @@ public class Aes {
         }
         System.err.println("decoder user time(ms):" + (System.currentTimeMillis() - s2));
 
-        System.out.println("encodeText: " + encodeText);
+        System.out.println("encodeText  : " + encodeText);
         System.out.println("plantTxt    : " + txt);
         System.out.println("decodeText  : " + decodeText);
         System.out.println("randomKey=  : " + getRandomKey(8));
+        System.out.println("解密正确     : " + decodeText.equals(txt));
     }
 }

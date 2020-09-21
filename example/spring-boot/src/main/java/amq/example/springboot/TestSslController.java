@@ -1,4 +1,4 @@
-package amq.example.springboot.ssl;
+package amq.example.springboot;
 
 import com.artfii.amq.core.Message;
 import com.artfii.amq.tester.TestUser;
@@ -23,7 +23,7 @@ public class TestSslController {
     @Resource
     private AmqSSLClient amqSSLClient;
 
-    @RequestMapping("/")
+    @RequestMapping("")
     public String hello(Model model){
         return "Are u ok?";
     }

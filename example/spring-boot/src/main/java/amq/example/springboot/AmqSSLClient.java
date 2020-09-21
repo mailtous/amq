@@ -1,8 +1,9 @@
-package amq.example.springboot.ssl;
+package amq.example.springboot;
 
-import com.artfii.amq.core.*;
+import com.artfii.amq.core.Message;
+import com.artfii.amq.core.MqClientProcessor;
+import com.artfii.amq.core.MqConfig;
 import com.artfii.amq.core.aio.AioProtocol;
-import com.artfii.amq.ssl.SslClientProcessor;
 import com.artfii.amq.transport.AioSSLMqClient;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +17,7 @@ import java.util.concurrent.ExecutionException;
  * @author: leeton on 2019/4/1.
  */
 @Component
-public class AmqSSLClient extends SslClientProcessor {
+public class AmqSSLClient extends MqClientProcessor {
 
     public AmqSSLClient() {
         try {
