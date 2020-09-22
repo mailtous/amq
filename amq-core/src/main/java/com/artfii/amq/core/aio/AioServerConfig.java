@@ -156,10 +156,10 @@ public class AioServerConfig<T> {
         return this;
     }
 
-    public void setBreakReconnect(long periodMs) {
+    public void setBreakReconnectMs(long periodMs) {
         this.clinet_break_reconnect_period_ms = periodMs;
     }
-    public long getBreakReconnect() {
+    public long getBreakReconnectMs() {
         return this.clinet_break_reconnect_period_ms;
     }
 

@@ -1,5 +1,6 @@
 package com.artfii.amq.core.aio;
 
+import com.artfii.amq.core.aio.plugin.ClientReconectTask;
 import com.artfii.amq.core.aio.plugin.Plugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,17 +88,18 @@ public class AioClient<T> implements Runnable {
         pipe = new AioPipe<>(socketChannel, config);
         pipe.setAioClient(this);
         pipe.startRead();
-        //断线重连
-//        ClientReconectPlugin.start(pipe);
+        // 启动断链重连TASK
+        ClientReconectTask.start(pipe, config.getBreakReconnectMs());
         logger.warn("amq-socket client started on {} {}, pipeId:{}", config.getHost(), config.getPort(),pipe.getId());
         return pipe;
     }
 
-
     public synchronized AioPipe<T> reConnect() {
         try {
-            pipe = start(this.asynchronousChannelGroup);
-            pipe.setStatus(AioPipe.ENABLED);
+            if (null == pipe || pipe.isClose()) {
+                pipe = start(this.asynchronousChannelGroup);
+                pipe.setStatus(AioPipe.ENABLED);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
@@ -205,8 +207,8 @@ public class AioClient<T> implements Runnable {
         }
     }
 
-    public void setBreakReconnect(long periodMs) {
-        this.config.setBreakReconnect(periodMs);
+    public void setBreakReconnectMs(long periodMs) {
+        this.config.setBreakReconnectMs(periodMs);
     }
 
     @Override

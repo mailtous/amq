@@ -1,6 +1,7 @@
 package com.artfii.amq.core.aio;
 
 import com.artfii.amq.core.Message;
+import com.artfii.amq.core.MqConfig;
 import com.artfii.amq.serializer.ISerializer;
 import com.artfii.amq.tools.RingBufferQueue;
 import com.artfii.amq.tools.cipher.Aes;
@@ -54,7 +55,7 @@ public class AioPipe<T> implements Serializable {
 
     private AioClient aioClient;
     private boolean isClient;
-    private boolean ssl;
+    public boolean ssl;
     private ISerializer serializer = ISerializer.Serializer.INST.of();
 
     public AioPipe() {
@@ -89,16 +90,15 @@ public class AioPipe<T> implements Serializable {
         continueRead();
     }
 
+    //加密握手成功后的消息
     private T encodeOfHanded(T t) {
         if (SSL_HANDSHAKE_SUCC && SSL_CHIPER != "") { //握手成功
             BaseMessage message = (BaseMessage) t;
-            if (!isHandshakeMsg(message.getHead().getKind())) {
-                Message msg = message.getBody();
-                if (null != msg) {
-                    if(null != msg.getV()){//内容序列化为byte,再加密
-                        byte[] v = serializer.toByte(msg.getV());
-                        msg.setV(Aes.build(SSL_CHIPER).encode(v));
-                    }
+            if (isNotHandshakeMsg(message.getHead().getKind())) {
+                if(MqConfig.inst.ssl_fast_token_model){
+                    encodeMsgToken(message);
+                }else {
+                    encodeMsgBody(message);
                 }
             }
         }
@@ -109,26 +109,61 @@ public class AioPipe<T> implements Serializable {
     private T decodeOfHanded(T t) {
         if (SSL_HANDSHAKE_SUCC && SSL_CHIPER != "") {
             BaseMessage message = (BaseMessage) t;
-            if (!isHandshakeMsg(message.getHead().getKind())) {
+            if (isNotHandshakeMsg(message.getHead().getKind())) {
 //                System.err.println("type= " + message.getHead().getKind() + ", body: " + message.getBody()+" pwd:"+ SSL_CHIPER);
-                Message msg = message.getBody();
-                if (null != msg) {
-                    if(null != msg.getV()){//收到的内容(byte)先解密,再反序列化为对象
-                        byte[] decodeByte = Aes.build(SSL_CHIPER).decode((byte[]) msg.getV());
-                        Object v = serializer.getObj(decodeByte);
-                        msg.setV(v);
-                    }
+               if(MqConfig.inst.ssl_fast_token_model){
+                   decodeMsgToken(message);
+               }else {
+                   decodeMsgBody(message);
                 }
             }
         }
         return t;
     }
 
+    private void encodeMsgBody(BaseMessage message){// 加密消息 body
+        Message msg = message.getBody();
+        if (null != msg) {
+            if(null != msg.getV()){//内容序列化为byte,再加密
+                byte[] v = serializer.toByte(msg.getV());
+                msg.setV(Aes.build(SSL_CHIPER).encode(v));
+            }
+        }
+    }
 
-    private boolean isHandshakeMsg(int type) {
-        if (BaseMsgType.SECURE_SOCKET_MESSAGE_RSP == type) return true;
-        if (BaseMsgType.SECURE_SOCKET_MESSAGE_REQ == type) return true;
-        return false;
+    private void encodeMsgToken(BaseMessage message){// 只加密 token
+        Message msg = message.getBody();
+        if (null != msg) {// TOKEN 加密
+            String token = Aes.getRandomKey(8);
+            msg.setToken(Aes.build(SSL_CHIPER).encode(token));
+        }
+    }
+
+    private void decodeMsgBody(BaseMessage message){// 解密消息的包含的内容(V)
+        Message msg = message.getBody();
+        if (null != msg) {
+            if(null != msg.getV()){//收到的内容(byte)先解密,再反序列化为对象
+                byte[] decodeByte = Aes.build(SSL_CHIPER).decode((byte[]) msg.getV());
+                Object v = serializer.getObj(decodeByte);
+                msg.setV(v);
+            }
+        }
+    }
+    private void decodeMsgToken(BaseMessage message){ // 解密消息的 TOKEN 部位
+        Message msg = message.getBody();
+        if (null != msg) {
+            if(null != msg.getToken()){//收到的token
+               String decodeByte = Aes.build(SSL_CHIPER).decode(msg.getToken());
+                msg.setToken(decodeByte);
+            }
+        }
+    }
+
+
+    private boolean isNotHandshakeMsg(int type) {
+        if (BaseMsgType.SECURE_SOCKET_MESSAGE_RSP == type) return false;
+        if (BaseMsgType.SECURE_SOCKET_MESSAGE_REQ == type) return false;
+        return true;
     }
 
     /**

@@ -5,6 +5,7 @@ import com.artfii.amq.core.aio.AioClient;
 import com.artfii.amq.core.aio.AioPipe;
 import com.artfii.amq.core.aio.AioProcessor;
 import com.artfii.amq.core.aio.Protocol;
+import com.artfii.amq.core.aio.plugin.ClientReconectTask;
 import com.artfii.amq.ssl.SslClientPlugin;
 
 import java.io.IOException;
@@ -38,6 +39,7 @@ public class AioSSLMqClient<T> extends AioClient<T> {
 
         //构造 AioPipe 对象,并且初始化
         aioPipe = new AioPipe(socketChannel, config,true,true);
+        aioPipe.setAioClient(this);
         //发送握手消息
         boolean writed = aioPipe.write(sslClientPlugin.clientReqAuthInfo());
         //轮询检查是否握手成功
@@ -50,6 +52,8 @@ public class AioSSLMqClient<T> extends AioClient<T> {
                 }
             }
         }
+        // 启动断链重连TASK
+        ClientReconectTask.start(pipe, config.getBreakReconnectMs());
         return aioPipe;
     }
 

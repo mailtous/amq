@@ -25,6 +25,7 @@ public class Message<K extends Message.Key, V> implements KV<K, V> {
     private Life life;
     private Listen listen;
     private Type type;
+    private String token; // 用于保存 SSL token,通过校验token,以避免加密所有通讯内容,以增加通讯速度.
 
     ////=============================================
     public static Message ofDef(Key k, Object v) {
@@ -275,6 +276,14 @@ public class Message<K extends Message.Key, V> implements KV<K, V> {
     public Message setType(Type type) {
         this.type = type;
         return this;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 
     @Override

@@ -76,6 +76,7 @@ public enum MqConfig {
     //========================== SSL CONFIG =====================================
     public String amq_pubkey_file;         // AMQ SSL 公钥文件
     public String amq_selftkey_file;       // AMQ SSL 私钥文件
+    public boolean ssl_fast_token_model;   // 只校验token的快速通讯模式,避免加密所有通讯内容来增加通讯效率.
 
     //========================== DB CONFIG =====================================
     // MAPDB 数据库文件

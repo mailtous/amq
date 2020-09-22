@@ -141,7 +141,8 @@ public class Aes {
      * test
      */
     public static void main(String[] args) {
-        String txt = "1000101w#E#测试ssAASASSC127.0.0.1lif123gsjkdsgvjxe--h_hello []{}";
+//        String txt = "1000101w#E#测试ssAASASSC127.0.0.1lif123gsjkdsgvjxe--h_hello []{}";
+        String txt = Aes.getRandomKey(8);
         Aes aes = Aes.buildOfDef();
         //encode
         String encodeText = "";
@@ -165,9 +166,10 @@ public class Aes {
         System.err.println("decoder user time(ms):" + (System.currentTimeMillis() - s2));
 
         System.out.println("encodeText  : " + encodeText);
+        System.out.println("encodeTxtLen: " + encodeText.length());
         System.out.println("plantTxt    : " + txt);
         System.out.println("decodeText  : " + decodeText);
         System.out.println("randomKey=  : " + getRandomKey(8));
-        System.out.println("解密正确     : " + decodeText.equals(txt));
+        System.out.println("解密是否正确  : " + decodeText.equals(txt));
     }
 }

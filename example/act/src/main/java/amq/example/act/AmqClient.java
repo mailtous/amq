@@ -22,7 +22,7 @@ public class AmqClient extends MqClientProcessor {
             final int threadSize = MqConfig.inst.client_connect_thread_pool_size;
             AsynchronousChannelGroup channelGroup = AsynchronousChannelGroup.withFixedThreadPool(threadSize, (r)->new Thread(r));
             AioMqClient<BaseMessage> client = new AioMqClient(new AioProtocol(), this);
-            client.setBreakReconnect(5000);
+            client.setBreakReconnectMs(5000);
             client.start(channelGroup);
 
         } catch (IOException e) {

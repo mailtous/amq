@@ -18,6 +18,7 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
     private static Logger logger = LoggerFactory.getLogger(MqClientProcessor.class);
 
     private AioPipe<BaseMessage> pipe;
+    private AioClient aioClient;
     private static Map<String, Call> callBackMap = new ConcurrentHashMap<>(); //客户端返回的消息包装
     private static Map<String, CompletableFuture<Message>> futureResultMap = new ConcurrentHashMap<>(); //客户端返回的消息包装(仅一次)
     //
@@ -25,6 +26,7 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
 
     @Override
     public void process0(AioPipe<BaseMessage> pipe, BaseMessage message) {
+        this.aioClient = pipe.getAioClient();
         if(BaseMsgType.RE_CONNECT_RSP == message.getHead().getKind()){ //服务端-->断线重连
             String pipeId = new String(message.getHead().getSlot()).trim();
             if (firstPipeId == "") { //第一次,保存最初的pipeID
@@ -163,14 +165,11 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
     }
 
     private boolean write(Message message) {
-        if (this.pipe.isClose()) {
-            reConnetion();
+        if (null == pipe || this.pipe.isClose()) {
+            this.pipe = this.aioClient.reConnect();
         }
         BaseMessage baseMessage = BaseMessage.ofAll(BaseMsgType.BYTE_ARRAY_MESSAGE_REQ, null, message);
         return this.pipe.write(baseMessage);
-    }
-    private void reConnetion(){
-        this.pipe = this.pipe.reConnect();
     }
 
     @Override
