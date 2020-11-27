@@ -15,6 +15,42 @@
     </modules>
 
     <properties>
-        <amq.version>0.0.3-snapshot</amq.version>
+        <scm.url>git@gitee.com:artlongs/amq.git</scm.url>
+        <top.version>0.0.3-snapsho</top.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
+
+    <developers>
+        <developer>
+            <name>QingFeng Li (leeton)</name>
+            <email>mailtous@163.com</email>
+            <organization>artfii.com</organization>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <connection>scm:git:${scm.url}</connection>
+        <developerConnection>scm:git:${scm.url}</developerConnection>
+        <url>${scm.url}</url>
+    </scm>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
 </project>
