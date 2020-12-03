@@ -20,6 +20,8 @@ Artfii-MQ 简称(AMQ), 是一个极轻量化,依赖极度少的 MQ 消息系统.
 3. 通过 RingBuffer 框架技术分发及处理消息任务
 4. 持久化中心：接收保存消息
 
+![整体架构图](img/AMQ-one2one.png)
+
 
 
 
