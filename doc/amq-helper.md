@@ -1,6 +1,4 @@
-# 关于 AMQ [![](https://jitpack.io/v/mailtous/amq.svg)](https://jitpack.io/#mailtous/amq)
-
-ArtFii-MQ 简称(AMQ), 是一个极轻量化,依赖极度少的 MQ 消息系统.
+Artfii-MQ 简称(AMQ), 是一个极轻量化,依赖极度少的 MQ 消息系统.
 使用方便,高性能,并且对硬件要求低,是它的特色.
 1. 在追求小的同时,高性能也是必须的,消息的分派使用了 LMAX-Ringbuffer 技术以保证性能.
 2. 默认情况下,发布的消息存活期为一天,以避免像 RocketMQ 那样产生大量过期无效的消息堆积.
@@ -14,23 +12,15 @@ ArtFii-MQ 简称(AMQ), 是一个极轻量化,依赖极度少的 MQ 消息系统.
 10. 黑名单自动拒绝连接
 11. 项目完成后,我才发现原来有个叫 MQTT 协议(物联网协议)的东东,一不小心本项目做成了它的实例.
 
-#特别声明:
-Aio的源码来源于 [smart-socket](https://github.com/smartboot/smart-socket) ,感谢三刀兄,虽然我魔改了它!
 
-#MAVEN:
-```xml
-<repositories>
-   <repository>
-    <id>jitpack.io</id>
-      <url>https://jitpack.io</url>
-   </repository>
-</repositories>
-<dependency>
-    <groupId>com.github.mailtous</groupId>
-    <artifactId>amq-core</artifactId>
-    <version>0.0.3-snapshot</version>
-</dependency>
-```
+# AMQ 的架构整体思路
 
-#注意事项:
-AMQ 的持久化方案使用了内嵌型的 MAPDB,而 MAPDB 是用 Kotlin 编写的,故使用IDEA进行原码编译的话,需求安装 Kotlin plugin.
+1. 通过 AIO 处理 IO 数据流
+2. 协议处理器转化 IO 数据流为 MSG 消息对象
+3. 通过 RingBuffer 框架技术分发及处理消息任务
+4. 持久化中心：接收保存消息
+
+
+
+
+
