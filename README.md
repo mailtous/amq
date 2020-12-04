@@ -1,4 +1,8 @@
-# 关于 AMQ [![](https://jitpack.io/v/mailtous/amq.svg)](https://jitpack.io/#mailtous/amq)
+# 关于 AMQ
+
+
+[![APL v2](https://img.shields.io/badge/license-Apache%202-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
+[![Maven Central](https://img.shields.io/maven-central/v/org.actfii/amq.svg)]
 
 ArtFii-MQ 简称(AMQ), 是一个极轻量化,依赖极度少的 MQ 消息系统.
 使用方便,高性能,并且对硬件要求低,是它的特色.
@@ -14,10 +18,16 @@ ArtFii-MQ 简称(AMQ), 是一个极轻量化,依赖极度少的 MQ 消息系统.
 10. 黑名单自动拒绝连接
 11. 项目完成后,我才发现原来有个叫 MQTT 协议(物联网协议)的东东,一不小心本项目做成了它的实例.
 
-#特别声明:
+# 帮助手册
+
+[AMQ帮助手册](doc/amq-helper.md)
+
+# 特别声明:
+
 Aio的源码来源于 [smart-socket](https://github.com/smartboot/smart-socket) ,感谢三刀兄,虽然我魔改了它!
 
-#MAVEN:
+# MAVEN:
+
 ```xml
 <dependency>
     <groupId>com.artfii.amq</groupId>
@@ -26,5 +36,6 @@ Aio的源码来源于 [smart-socket](https://github.com/smartboot/smart-socket) 
 </dependency>
 ```
 
-#注意事项:
+# 注意事项:
+
 AMQ 的持久化方案使用了内嵌型的 MAPDB,而 MAPDB 是用 Kotlin 编写的,故使用IDEA进行原码编译的话,需求安装 Kotlin plugin.
