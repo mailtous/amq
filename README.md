@@ -2,7 +2,7 @@
 
 
 [![APL v2](https://img.shields.io/badge/license-Apache%202-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
-[![Maven Central](https://img.shields.io/maven-central/v/org.actfii/amq.svg)]
+[![Maven Central](https://img.shields.io/maven-central/v/com.actfii/artfii-amq.svg)]
 
 ArtFii-MQ 简称(AMQ), 是一个极轻量化,依赖极度少的 MQ 消息系统.
 使用方便,高性能,并且对硬件要求低,是它的特色.
