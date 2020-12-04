@@ -36,10 +36,11 @@ public class AioMqServer extends AioServer {
         try {
             AioServer<ByteBuffer> aioServer = new AioServer(MqConfig.inst.host, MqConfig.inst.port, new AioProtocol(), new MqServerProcessor());
             aioServer.startCheckAlive(MqConfig.inst.start_check_client_alive)
-            .startMonitorPlugin(MqConfig.inst.start_flow_monitor)
-            .setResumeSubcribe(true);
+                    .startMonitorPlugin(MqConfig.inst.start_flow_monitor)
+                    .setResumeSubcribe(true);
             //
             pool.submit(aioServer);
+            //
             this.aioServer = aioServer;
             aioServer.start();
             //
@@ -78,8 +79,7 @@ public class AioMqServer extends AioServer {
         this.aioServer.shutdown();
         shutdownMe();
         shutdownOfWait();
-        System.out.println("================= AMQ EXIT =================");
-        System.out.println("AMQ 已安全退出.");
+        System.out.println("================= AMQ 已安全退出 =================");
     }
 
     private void shutdownMe(){
@@ -96,7 +96,7 @@ public class AioMqServer extends AioServer {
 
     private void shutdownOfWait(){
         try {
-            Thread.sleep(5000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -114,7 +114,7 @@ public class AioMqServer extends AioServer {
             System.out.println();
             String quit = sc.nextLine();
             if(quit.equalsIgnoreCase("quit")){
-                shutdown();
+                shutdownAll();
                 sc.close();
                 break;
             }

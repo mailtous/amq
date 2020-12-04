@@ -12,11 +12,11 @@ import java.nio.channels.AsynchronousChannelGroup;
 import java.util.concurrent.ExecutionException;
 
 /**
- * Func :
+ * Func : AmqSSLClient
  *
  * @author: leeton on 2019/4/1.
  */
-@Component
+//@Component
 public class AmqSSLClient extends MqClientProcessor {
 
     public AmqSSLClient() {

@@ -9,8 +9,8 @@ import java.nio.channels.AsynchronousChannelGroup;
 import java.util.concurrent.ExecutionException;
 
 /**
- * Func :
- *
+ * Func : 客户端启动类
+ * 注意如果要测试本类，需要把 AmqSSLClient 关闭注入及组件扫描
  * @author: leeton on 2019/4/1.
  */
 @Component

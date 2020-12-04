@@ -3,7 +3,7 @@ package amq.example.springboot;
 import com.artfii.amq.core.AioMqServer;
 
 /**
- * Func :
+ * Func : 服务端启动类
  *
  * @author: leeton on 2020/9/22.
  */

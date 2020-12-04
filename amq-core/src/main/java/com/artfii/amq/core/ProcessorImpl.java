@@ -76,16 +76,21 @@ public enum ProcessorImpl implements Processor {
     private MonitorPlugin monitor;
 
     ProcessorImpl() {
+        //创建分发器
         this.mqDisruptor = createDisrupter();
+        // 启动：消息任务分发器
         this.job_worker = mqDisruptor.start();
         //
 //        jobPool = IOUtils.createFixedThreadPool(MqConfig.inst.worker_thread_pool_size, "MQ:job-");
 //        bizPool = IOUtils.createFixedThreadPool(MqConfig.inst.worker_thread_pool_size, "MQ:biz-");
+
+        //数据持久化，采用独立的线程池来分配工作
         storeThreadPool = IOUtils.createFixedThreadPool(MqConfig.inst.worker_thread_pool_size, "MQ:store-");
         //
 //        this.biz_worker_pool = createWorkerPool(new BizEventHandler());
 //        this.biz_worker = biz_worker_pool.start(bizPool);
-        //
+
+        //数据持久化的线程池交给 Ringbuffer 进行管理
         this.persistent_worker_pool = createWorkerPool(new StoreEventHandler());
         this.persistent_worker = persistent_worker_pool.start(storeThreadPool);
 
@@ -129,10 +134,15 @@ public enum ProcessorImpl implements Processor {
     }
 
 
+    /**
+     * 收到消息后进一步处理（订阅、发布、持久化)
+     * @param pipe
+     * @param message
+     */
     @Override
     public void onMessage(AioPipe pipe, Message message) {
         if (!shutdowNow && null != message) {
-            if (MqConfig.inst.start_store_all_message_to_db) { // 持久化所有消息
+            if (MqConfig.inst.start_store_all_message_to_db) { // 配置了持久化所有消息
                 if (!message.subscribeTF()) {
                     tiggerStoreAllMsgToDb(persistent_worker, message);
                 }
@@ -204,7 +214,7 @@ public enum ProcessorImpl implements Processor {
         message.getStat().setOn(Message.ON.SENDING);
 //        publishBizToWorkerPool(biz_worker, message);
         pulishJobEvent(message);
-        tiggerStoreComonMessageToDb(persistent_worker, message);
+        tiggerStoreCommonMessageToDb(persistent_worker, message);
     }
 
     private void publishBizToWorkerPool(RingBuffer<JobEvent> ringBuffer, Message message) {
@@ -220,7 +230,7 @@ public enum ProcessorImpl implements Processor {
         ringBuffer.publishEvent(JobEvent::translate, subscribe);
     }
 
-    private void tiggerStoreComonMessageToDb(RingBuffer<JobEvent> ringBuffer, Message message) {
+    private void tiggerStoreCommonMessageToDb(RingBuffer<JobEvent> ringBuffer, Message message) {
         if (Message.Life.SPARK == message.getLife()) return;
         ringBuffer.publishEvent(JobEvent::translate, message);
     }

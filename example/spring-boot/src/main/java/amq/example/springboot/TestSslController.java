@@ -1,6 +1,7 @@
 package amq.example.springboot;
 
 import com.artfii.amq.core.Message;
+import com.artfii.amq.core.MqAction;
 import com.artfii.amq.tester.TestUser;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,10 +22,10 @@ import java.util.Map;
 public class TestSslController {
 
     @Resource
-    private AmqSSLClient amqSSLClient;
+    private MqAction amqSSLClient;
 
     @RequestMapping("")
-    public String hello(Model model){
+    public String hello(){
         return "Are u ok?";
     }
 

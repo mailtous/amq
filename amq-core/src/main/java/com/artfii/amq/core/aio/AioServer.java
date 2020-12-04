@@ -97,7 +97,7 @@ public class AioServer<T> implements Runnable {
     }
 
     /**
-     * 内部启动逻辑
+     * 启动一个 AsynchronousServerSocketChannel 接收客户端消息，并创建AioPipe
      *
      * @throws IOException
      */
@@ -226,27 +226,33 @@ public class AioServer<T> implements Runnable {
         } catch (IOException e) {
             LOGGER.warn(e.getMessage(), e);
         }
-        //先尝试关闭服务,但运中的任务还在跑...
-        asynchronousChannelThreadPool.shutdown();
-        // 真正关闭服务
-        if (!asynchronousChannelThreadPool.isTerminated()) {
-            try {
-                asynchronousChannelThreadPool.shutdownNow();
-            } catch (IOException e) {
-                LOGGER.error("shutdown exception", e);
+        if(null != asynchronousChannelThreadPool){
+            //先尝试关闭服务,但运中的任务还在跑...
+            asynchronousChannelThreadPool.shutdown();
+            // 真正关闭服务
+            if (!asynchronousChannelThreadPool.isTerminated()) {
+                try {
+                    asynchronousChannelThreadPool.shutdownNow();
+                } catch (IOException e) {
+                    LOGGER.error("shutdown exception", e);
+                }
             }
         }
+
+
 /*        try {
             asynchronousChannelThreadPool.awaitTermination(3, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             LOGGER.error("shutdown exception", e);
         }*/
-        // 关闭流量统计
-        Monitor monitor = this.config.getProcessor().getMonitor();
-        if (monitor != null) {
-            ((MonitorPlugin) monitor).cancel();
-        }
 
+        AioProcessor processor = this.config.getProcessor();
+        if (null != processor) { // 关闭流量统计
+            Monitor monitor = processor.getMonitor();
+            if (monitor != null) {
+                ((MonitorPlugin) monitor).cancel();
+            }
+        }
 
     }
 

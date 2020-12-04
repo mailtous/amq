@@ -21,10 +21,10 @@ import java.util.Map;
 public class TestController {
 
     @Resource
-    private MqAction amqClient;
+    private AmqClient amqClient;
 
     @RequestMapping("/")
-    public String hello(Model model){
+    public String hello(){
         return "Are u ok?";
     }
 
@@ -49,10 +49,9 @@ public class TestController {
         return "ok";
     }
 
-
     /**
      * 发送方
-     * 发布一个工作任务
+     * 发布一个工作任务，并接收执行结果
      * @return
      */
     @RequestMapping("/sendjob")
