@@ -6,23 +6,16 @@
     <parent>
         <artifactId>example</artifactId>
         <groupId>com.artfii.amq</groupId>
-        <version>0.0.3-snapshot</version>
+        <version>0.0.1-RELEASE</version>
     </parent>
     <artifactId>act</artifactId>
-    <version>0.0.3-snapshot</version>
+    <version>0.0.1-RELEASE</version>
 
     <properties>
         <app.entry>amq.example.act.AppStart</app.entry>
         <act.version>1.8.21</act.version>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
-
-    <repositories>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-    </repositories>
 
     <dependencies>
         <dependency>
@@ -35,7 +28,7 @@
         <dependency>
             <groupId>com.artfii.amq</groupId>
             <artifactId>amq-core</artifactId>
-            <version>0.0.3-snapshot</version>
+            <version>0.0.1-RELEASE</version>
         </dependency>
 
     </dependencies>

@@ -8,17 +8,18 @@
     <parent>
         <groupId>com.artfii.amq</groupId>
         <artifactId>artfii-amq</artifactId>
-        <version>0.0.3-snapshot</version>
+        <version>0.0.1-RELEASE</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <groupId>com.artfii.amq</groupId>
     <artifactId>amq-parent</artifactId>
-    <version>0.0.3-snapshot</version>
+    <version>0.0.1-RELEASE</version>
 
     <modules>
         <module>../amq-core</module>
         <module>../amq-pro</module>
-        <module>../example</module>
+        <!-- 发布前关闭 example -->
+        <!--<module>../example</module>-->
     </modules>
 
     <profiles>

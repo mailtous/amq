@@ -6,7 +6,7 @@
     <parent>
         <artifactId>example</artifactId>
         <groupId>com.artfii.amq</groupId>
-        <version>0.0.3-snapshot</version>
+        <version>0.0.1-RELEASE</version>
     </parent>
 
     <artifactId>spring-boot</artifactId>
@@ -22,7 +22,7 @@
         <dependency>
             <groupId>com.artfii.amq</groupId>
             <artifactId>amq-pro</artifactId>
-            <version>0.0.3-snapshot</version>
+            <version>0.0.1-RELEASE</version>
         </dependency>
     </dependencies>
 
