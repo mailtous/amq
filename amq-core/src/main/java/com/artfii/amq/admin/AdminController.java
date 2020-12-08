@@ -21,11 +21,6 @@ import java.util.Date;
 @Url
 public class AdminController extends BaseController {
 
-    @Override
-    protected void addController() {
-        set(this);
-    }
-
     @Get("/topic")
     public Render topicIndex() {
         return Render.template("/topic.html");

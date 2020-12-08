@@ -65,8 +65,6 @@ public class AioMqServer extends AioServer {
     public void startAdmin(){
         if (MqConfig.inst.start_mq_admin) {
             httpServer = AioHttpServer.instance;
-            HttpProcessor processor = httpServer.getHttpProcessor();
-            processor.addController(new AdminController().getControllers());
             httpServer.start();
 
         }

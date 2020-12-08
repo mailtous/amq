@@ -18,10 +18,10 @@ public abstract class BaseController implements Controller {
     private List<Controller> controllerList = new ArrayList<>();
 
     public BaseController() {
-        set(this);
+//        set(this);
     }
 
-    protected abstract void addController();
+/*//    protected abstract void addController();
 
     public Controller[] getControllers() {
         addController();
@@ -31,7 +31,7 @@ public abstract class BaseController implements Controller {
     public BaseController set(Controller controller) {
         this.controllerList.add(controller);
         return this;
-    }
+    }*/
 
     /**
      * 静态文件路由
