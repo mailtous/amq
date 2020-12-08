@@ -19,7 +19,7 @@ import java.util.Date;
  * @author: leeton on 2019/3/15.
  */
 @Url
-public class QueryController extends BaseController {
+public class AdminController extends BaseController {
 
     @Override
     protected void addController() {

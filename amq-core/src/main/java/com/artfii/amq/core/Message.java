@@ -133,7 +133,7 @@ public class Message<K extends Message.Key, V> implements KV<K, V> {
 
     private static <V> Message ofPublicJob(Key k, V v) {
         //注意这里不生成普通的订阅. MQ 中心里会手动生成一个特殊的订阅
-        return ofDef(k, v).setLife(Life.SPARK).setListen(Listen.FUTURE_AND_ONCE).setType(Type.PUBLISH_JOB);
+        return ofDef(k, v).setLife(Life.ALL_ACKED).setListen(Listen.FUTURE_AND_ONCE).setType(Type.PUBLISH_JOB);
     }
 
     private static Message ofAcceptJob(Key k) {//实际上是一个订阅类别的消息

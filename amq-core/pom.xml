@@ -78,6 +78,18 @@
     </dependencies>
 
     <build>
+        <!-- 后台管理的静态文件-->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.properties</include>
+                    <include>**/*.html</include>
+                    <include>**/*.js</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <!-- 直接通过 MAVEN 运行 JAVA 的插件-->
             <plugin>

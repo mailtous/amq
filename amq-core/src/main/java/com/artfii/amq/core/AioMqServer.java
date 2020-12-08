@@ -1,8 +1,10 @@
 package com.artfii.amq.core;
 
+import com.artfii.amq.admin.AdminController;
 import com.artfii.amq.core.aio.AioProtocol;
 import com.artfii.amq.core.aio.AioServer;
 import com.artfii.amq.http.AioHttpServer;
+import com.artfii.amq.http.HttpProcessor;
 import com.artfii.amq.http.HttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,8 +65,8 @@ public class AioMqServer extends AioServer {
     public void startAdmin(){
         if (MqConfig.inst.start_mq_admin) {
             httpServer = AioHttpServer.instance;
-//            HttpProcessor processor = httpServer.getHttpProcessor();
-//            processor.addController(new QueryController().getControllers());
+            HttpProcessor processor = httpServer.getHttpProcessor();
+            processor.addController(new AdminController().getControllers());
             httpServer.start();
 
         }
@@ -108,7 +110,7 @@ public class AioMqServer extends AioServer {
             sc.useDelimiter("/n");
             System.out.println();
             System.out.println("=======================================");
-            System.out.println("AMQ已启动,(消息端口:" + config.host+ "),(管理端口:" + config.port + ")");
+            System.out.println("AMQ已启动,(消息端口:" + MqConfig.inst.port+ "),(管理端口:" + MqConfig.inst.admin_http_port + ")");
             System.out.println("如果想安全退出,请输入命令: quit");
             System.out.println("=======================================");
             System.out.println();
