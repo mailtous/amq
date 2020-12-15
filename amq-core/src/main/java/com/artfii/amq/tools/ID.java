@@ -1,7 +1,5 @@
 package com.artfii.amq.tools;
 
-import org.osgl.util.S;
-
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -13,11 +11,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by ${leeton} on 2018/11/21.
  */
 public enum ID {
+
     ONLY;
-    /**
-     * 上次生成ID的时间截
-     */
-    private BigInteger lastTimestamp = BigInteger.valueOf(0);
+
+    private BigInteger lastId = BigInteger.valueOf(0); //上次生成ID的时间截
+    private int last_atomic_num = 0; //上次的顺序数
     private static final AtomicInteger atomicNum = new AtomicInteger();
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");//(17)位
 
@@ -27,42 +25,49 @@ public enum ID {
     public static final int atomic_num_four = 9999;
     public static final int atomic_num_five = 99999;
 
+    public long getDefId(){
+        return ID.ONLY.id(atomic_num_two).longValue();
+    }
+
 
     private StringBuffer getYmdId() {
         return new StringBuffer(sdf.format(System.currentTimeMillis()));
     }
 
-    public synchronized String id(int longs) {
+    public synchronized BigInteger id(int longs) {
+        if(last_atomic_num != longs){ // 上次运行时定义的顺序数长度与本次不同
+            lastId = BigInteger.valueOf(0);
+        }
         //数字长度为longs位，长度不够数字前面补0
-        String format = "%0"+ Integer.valueOf(longs).toString().length()+"d";
+        String format = "%0" + Integer.valueOf(longs).toString().length() + "d";
         StringBuffer ymd = getYmdId();
-        BigInteger currentTimes = getCurrentTimes(ymd, longs, format);
-        while (currentTimes.compareTo(lastTimestamp)==-1) {
-            ymd=getYmdId();
-            currentTimes = getCurrentTimes(ymd, longs, format);
+        BigInteger currentId = getCurrentId(ymd, longs, format);
+        while (currentId.compareTo(lastId) <= 0) {
+            ymd = getYmdId();
+            currentId = getCurrentId(ymd, longs, format);
         }
 
         //上次生成ID的时间截
-        lastTimestamp = currentTimes;
-
-        return String.valueOf(currentTimes);
+        lastId = currentId;
+        last_atomic_num = longs;
+        return currentId;
     }
 
-    private BigInteger getCurrentTimes(StringBuffer ymd,int longs,String format){
+    private BigInteger getCurrentId(StringBuffer ymd, int longs, String format) {
         return new BigInteger(ymd.append(getNewAutoNum(longs, format)).toString());
     }
 
     /**
      * 生成原子顺序数字
+     *
      * @param longs 原子顺序数的长度
      * @return
      */
-    private String getNewAutoNum(int longs,String format){
-        //线程安全的原子操作，所以此方法无需同步
+    private String getNewAutoNum(int longs, String format) {
         int newNum = atomicNum.incrementAndGet();
-        if(atomicNum.get()>longs){
+        if (atomicNum.get() > longs) {
             atomicNum.set(0);
-            newNum=atomicNum.get();
+            newNum = atomicNum.get();
         }
 
         String newStrNum = String.format(format, newNum);
@@ -72,11 +77,13 @@ public enum ID {
 
     public static void main(String[] args) {
         for (int i = 0; i < 100; i++) {
-            String idStr =ID.ONLY.id(atomic_num_five);
+            String idStr = String.valueOf(ID.ONLY.id(atomic_num_five));
             System.err.println(idStr);
-            String ymd = S.first(idStr,17);
+            String ymd = idStr.substring(0, 17);
             System.err.println(sdf.format(System.currentTimeMillis()).equals(ymd));
         }
+
+        System.err.println("19len="+ID.ONLY.getDefId());
 
     }
 
