@@ -13,15 +13,15 @@
 
     <properties>
         <app.entry>amq.example.act.AppStart</app.entry>
-        <act.version>1.8.21</act.version>
+        <act.version>1.9.1.0</act.version>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.actframework</groupId>
-            <artifactId>act</artifactId>
-            <version>${act.version}</version>
+            <artifactId>act-starter-parent</artifactId>
+            <version>1.9.1.0</version>
         </dependency>
 
         <!-- AMQ -->
@@ -34,6 +34,19 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.properties</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources/ssl</directory>
+                <targetPath>ssl</targetPath>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

@@ -1,6 +1,7 @@
 package amq.example.act;
 
 import act.Act;
+import com.artfii.amq.core.AioMqServer;
 
 /**
  * Func :
@@ -16,6 +17,7 @@ public class AppStart {
      * @throws Exception
      */
       public static void main(String[] args) throws Exception {
-        Act.start("AMQ-ACT-EXAMPLE");
+        Act.start();
+          AioMqServer.instance.start();
     }
 }

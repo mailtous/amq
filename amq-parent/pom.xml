@@ -54,7 +54,7 @@
         <slf4j.version>1.7.25</slf4j.version>
         <log4j.version>1.2.17</log4j.version>
         <logback.version>1.2.3</logback.version>
-        <osgl-tool.version>1.19.2</osgl-tool.version>
+        <osgl-tool.version>1.26.2</osgl-tool.version>
     </properties>
 
     <dependencies>
@@ -78,12 +78,16 @@
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.osgl</groupId>
-            <artifactId>osgl-tool</artifactId>
-            <version>${osgl-tool.version}</version>
-        </dependency>
     </dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.osgl</groupId>
+                <artifactId>osgl-tool</artifactId>
+                <version>${osgl-tool.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <resources>

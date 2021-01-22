@@ -59,7 +59,7 @@ public class ServerStore extends BaseStore {
 
 
     public static void main(String[] args) {
-        Message msg = Message.ofDef(new Message.Key(ID.ONLY.id(ID.atomic_num_two), "hello"), "hello,world!");
+        Message msg = Message.ofDef(new Message.Key(ID.ONLY.id(ID.atomic_num_four).toString(), "hello"), "hello,world!");
         IStore.ofServer().save(IStore.server_mq_all_data, msg.getK().getId(), msg);
         System.err.println(IStore.ofServer().<Message>get(IStore.server_mq_all_data, msg.getK().getId(), Message.class));
         System.err.println(IStore.ofServer().<Message>getAll(IStore.server_mq_all_data, Message.class));

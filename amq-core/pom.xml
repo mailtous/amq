@@ -69,12 +69,11 @@
             <artifactId>bcprov-jdk15on</artifactId>
             <version>1.58</version>
         </dependency>
-
-        <!--      <dependency>
-                  <groupId>org.apache.maven</groupId>
-                  <artifactId>maven-project</artifactId>
-                  <version>3.0-alpha-2</version>
-              </dependency>-->
+            <dependency>
+                <groupId>org.osgl</groupId>
+                <artifactId>osgl-tool</artifactId>
+                <version>${osgl-tool.version}</version>
+            </dependency>
     </dependencies>
 
     <build>
