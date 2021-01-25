@@ -18,25 +18,11 @@ import java.nio.ByteBuffer;
  */
 public class JobEvnetHandler implements EventHandler<JobEvent> {
     private static Logger logger = LoggerFactory.getLogger(JobEvnetHandler.class);
-    ISerializer serializer = ISerializer.Serializer.INST.of();
-
     @Override
     public void onEvent(JobEvent event, long sequence, boolean endOfBatch) throws Exception {
-        logger.debug("[MQ]执行消息任务的分派 ......");
-        Message message = decode(event.getByteBuffer());
-        event.getByteBuffer().clear();
-        if (null != message) {
-            logger.debug("[MQ]"+message);
-            ProcessorImpl.INST.onMessage(event.getPipe(), message);
-        }
+        logger.debug("执行 JobEvnetHandler:" + event.getMessage());
+        ProcessorImpl.INST.onMessage(event.getPipe(), event.getMessage());
     }
 
-    private Message decode(ByteBuffer buffer) {
-        try {
-            return serializer.getObj(buffer,Message.class);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+
 }

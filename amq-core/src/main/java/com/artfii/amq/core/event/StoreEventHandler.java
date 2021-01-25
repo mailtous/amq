@@ -55,9 +55,6 @@ public class StoreEventHandler implements WorkHandler<JobEvent> {
                 return IStore.server_mq_common_publish;
             case PUBLISH_JOB:
                 return IStore.server_mq_common_publish;
-            case ACCEPT_JOB:
-                return IStore.server_mq_subscribe;
-
         }
         return dbName;
     }

@@ -30,12 +30,15 @@ public class MqServerProcessor extends AioBaseProcessor<BaseMessage> {
                 ProcessorImpl.INST.replacePipeIdOnReconnect(oldPipeId, newPipeId);
             }
         }else {
-            directSend(pipe, baseMessage.getBody());
+            Message message = baseMessage.getBody();
+            if (null != message) {
+                sendToMqCenter(pipe, baseMessage.getBody());
+            }
         }
     }
-    private void directSend(AioPipe pipe, Message message) {
-        logger.debug("[AIO] direct send buffer to MQ");
-        ProcessorImpl.INST.onMessage(pipe, message);
+    private void sendToMqCenter(AioPipe pipe, Message message) {
+        logger.debug("[AIO] SEND MSG TO MQ PROCESSOR ");
+        ProcessorImpl.INST.publishJobToWorker(pipe,message);
     }
 
     @Override

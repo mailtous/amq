@@ -57,6 +57,12 @@ public final class FastList<T> extends AbstractList<T> implements List<T>, Rando
       this.clazz = clazz;
    }
 
+   public FastList(int capacity) {
+      this.elementData = (T[]) Array.newInstance(Object.class, capacity);
+      this.clazz = Object.class;
+   }
+
+
    /**
     * Add an element to the tail of the FastList.
     *

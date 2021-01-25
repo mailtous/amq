@@ -71,7 +71,7 @@ public abstract class BaseStore implements IStore {
 
     @Override
     public <T> FastList<T> getAll(String dbName, Class<T> tClass) {
-        FastList<T> list = new FastList<>(tClass, 200_000);
+        FastList<T> list = new FastList<>(tClass, 20_000);
         for (Object o : getMapBy(dbName).values()) {
             list.add(serializer.getObj((byte[]) o, tClass));
         }
@@ -80,7 +80,7 @@ public abstract class BaseStore implements IStore {
 
     @Override
     public <T> List<T> list(String dbName, int pageNumber, int pageSize, Class<T> tClass) {
-        FastList<T> result = new FastList<>(tClass, 200_000);
+        FastList<T> result = new FastList<>(tClass, 20_000);
         FastList<T> allList = getAll(dbName, tClass);
         // filter of page
         int total = allList.size();

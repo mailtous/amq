@@ -27,9 +27,16 @@ public class JobEvent {
             return new JobEvent();
         }
     };
-    public static void translate(JobEvent jobEvent, long sequence, AioPipe pipe,ByteBuffer buffer) {
+
+    /**
+     * 把消息及 PIPE 封装到事件中
+     * @param jobEvent
+     * @param pipe
+     * @param message
+     */
+    public static void translate(JobEvent jobEvent,long sequence,AioPipe pipe,Message message) {
         jobEvent.setPipe(pipe);
-        jobEvent.setByteBuffer(buffer);
+        jobEvent.setMessage(message);
     }
 
     public static void translate(JobEvent jobEvent, long sequence, Message msg) {

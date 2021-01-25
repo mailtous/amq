@@ -2,8 +2,8 @@ package com.artfii.amq.core;
 
 import com.artfii.amq.core.aio.*;
 import com.artfii.amq.core.aio.plugin.MonitorPlugin;
-import com.artfii.amq.core.event.BizEventHandler;
 import com.artfii.amq.core.event.JobEvent;
+import com.artfii.amq.core.event.JobEvnetHandler;
 import com.artfii.amq.core.event.StoreEventHandler;
 import com.artfii.amq.core.store.IStore;
 import com.artfii.amq.disruptor.*;
@@ -28,7 +28,7 @@ import java.util.concurrent.ExecutorService;
  *
  * @author: leeton on 2019/1/22.
  */
-public enum ProcessorImpl implements Processor {
+public enum ProcessorImpl implements MqProcessor {
     INST;
     private static Logger logger = LoggerFactory.getLogger(ProcessorImpl.class);
 
@@ -58,17 +58,11 @@ public enum ProcessorImpl implements Processor {
     //创建消息多线程任务分发器 ringBuffer
     private final RingBuffer<JobEvent> job_worker;
 
-    // 业务处理 worker
-//    private final RingBuffer<JobEvent> biz_worker;
-    // 业务处理 worker pool
-//    private final WorkerPool<JobEvent> biz_worker_pool;
-
     // 消息持久化 worker
     private RingBuffer<JobEvent> persistent_worker = null;
     // 消息持久化 worker pool
     private WorkerPool<JobEvent> persistent_worker_pool = null;
-    ExecutorService jobPool = null;
-    ExecutorService bizPool = null;
+
     ExecutorService storeThreadPool = null;
     private Disruptor mqDisruptor;
 
@@ -80,16 +74,9 @@ public enum ProcessorImpl implements Processor {
         this.mqDisruptor = createDisrupter();
         // 启动：消息任务分发器
         this.job_worker = mqDisruptor.start();
-        //
-//        jobPool = IOUtils.createFixedThreadPool(MqConfig.inst.worker_thread_pool_size, "MQ:job-");
-//        bizPool = IOUtils.createFixedThreadPool(MqConfig.inst.worker_thread_pool_size, "MQ:biz-");
 
         //数据持久化，采用独立的线程池来分配工作
         storeThreadPool = IOUtils.createFixedThreadPool(MqConfig.inst.worker_thread_pool_size, "MQ:store-");
-        //
-//        this.biz_worker_pool = createWorkerPool(new BizEventHandler());
-//        this.biz_worker = biz_worker_pool.start(bizPool);
-
         //数据持久化的线程池交给 Ringbuffer 进行管理
         this.persistent_worker_pool = createWorkerPool(new StoreEventHandler());
         this.persistent_worker = persistent_worker_pool.start(storeThreadPool);
@@ -102,19 +89,19 @@ public enum ProcessorImpl implements Processor {
     }
 
     /**
-     * 创建消息 disruptor
+     * 创建消息分发器
      *
      * @return
      */
     private Disruptor<JobEvent> createDisrupter() {
-        Disruptor<JobEvent> disruptor =
-                new Disruptor<JobEvent>(
+        Disruptor<JobEvent> disruptor = new Disruptor<JobEvent>(
                         JobEvent.EVENT_FACTORY,
                         WORKER_BUFFER_SIZE,
                         DaemonThreadFactory.INSTANCE,
                         ProducerType.MULTI,
                         new BlockingWaitStrategy());
-        disruptor.handleEventsWith(new BizEventHandler());
+        //设置事件处理handler
+        disruptor.handleEventsWith(new JobEvnetHandler());
         return disruptor;
     }
 
@@ -179,18 +166,33 @@ public enum ProcessorImpl implements Processor {
                             sendMessageToSubcribe(message,acceptor);
                             return;
                         }
-                    }else {
+                    }else {//普通消息
                         incrCommonPublish();
                         if (Message.Life.SPARK != message.getLife()) {
                             cacheCommonPublishMessage(msgId, message);
                         }
+                        // 发布消息
+                        sendMessageToSubcribe(message);
                     }
-                    // 发布消息
-                    publishJobToWorker(message);
                 }
             }
         }
 
+    }
+
+    /**
+     * 分派消息,并把消息持久化放到线程池里去执行
+     *
+     * @param message
+     */
+    @Override
+    public void publishJobToWorker(AioPipe<Message> pipe,Message message) {
+        pulishJobEvent(pipe,message);
+        tiggerStoreCommonMessageToDb(persistent_worker, message);
+    }
+
+    private void pulishJobEvent(AioPipe<Message> pipe,Message message) {
+        job_worker.publishEvent(JobEvent::translate,pipe, message);
     }
 
 
@@ -200,25 +202,8 @@ public enum ProcessorImpl implements Processor {
      * @param message
      */
     public void pulishJobEvent(Message message) {
-        message.getStat().setOn(Message.ON.SENDING);
+        message.getStat().setOn(Message.ON.SENED);
         job_worker.publishEvent(JobEvent::translate, message);
-    }
-
-    /**
-     * 分派消息,并把消息持久化放到线程池里去执行
-     *
-     * @param message
-     */
-    @Override
-    public void publishJobToWorker(Message message) {
-        message.getStat().setOn(Message.ON.SENDING);
-//        publishBizToWorkerPool(biz_worker, message);
-        pulishJobEvent(message);
-        tiggerStoreCommonMessageToDb(persistent_worker, message);
-    }
-
-    private void publishBizToWorkerPool(RingBuffer<JobEvent> ringBuffer, Message message) {
-        ringBuffer.publishEvent(JobEvent::translate, message);
     }
 
     private void tiggerStoreAllMsgToDb(RingBuffer<JobEvent> ringBuffer, Message message) {
@@ -245,11 +230,11 @@ public enum ProcessorImpl implements Processor {
     private boolean addSubscribeIF(AioPipe pipe, Message message) {
         if (message.subscribeTF()) {
             String clientKey = message.getK().getId();
-            Subscribe listen = new Subscribe(clientKey, message.getK().getTopic(), pipe.getId(), message.getLife(), message.getListen(), System.currentTimeMillis());
-            RingBufferQueue.Result result = cache_subscribe.putIfAbsent(listen);
+            Subscribe subscribe = new Subscribe(clientKey, message.getK().getTopic(), pipe.getId(), message.getLife(), message.getListen(), System.currentTimeMillis());
+            RingBufferQueue.Result result = cache_subscribe.putIfAbsent(subscribe);
             if (result.success) {
-                listen.setIdx(result.index);
-                tiggerStoreSubscribeToDb(persistent_worker, listen);
+                subscribe.setIdx(result.index);
+                tiggerStoreSubscribeToDb(persistent_worker, subscribe);
                 return true;
             }
         }
@@ -307,7 +292,7 @@ public enum ProcessorImpl implements Processor {
      * @param topic
      * @return
      */
-    public FastList<Subscribe> subscribeMatchOfTopic(String topic) {
+    private FastList<Subscribe> subscribeMatchOfTopic(String topic) {
         FastList<Subscribe> list = new FastList<>(Subscribe.class);
         Iterator<Subscribe> subscribes = cache_subscribe.iterator();
         while (subscribes.hasNext()) {
@@ -324,13 +309,14 @@ public enum ProcessorImpl implements Processor {
      * 发送消息给订阅方
      *
      * @param message
-     * @param subscribeList
      */
-    public void sendMessageToSubcribe(Message message, List<Subscribe> subscribeList) {
+    private void sendMessageToSubcribe(Message message) {
+        String topic = message.getK().getTopic();
+        FastList<Subscribe> subscribeList = subscribeMatchOfTopic(topic);
         for (Subscribe subscribe : subscribeList) {
             if (isPipeClosed(subscribe)) {
                 removeSubscribeOfCache(subscribe);
-                removeSubscribeOfDB(subscribe.getId());
+//                removeSubscribeOfDB(subscribe.getId());
                 continue;
             }
             // 当客户端全部 ACK,则 remove 掉缓存
@@ -641,7 +627,7 @@ public enum ProcessorImpl implements Processor {
      * @param pipeId
      */
     public void replacePipeIdOnReconnect(Integer oldPipeId, Integer pipeId) {
-//        logger.debug("更换已经失效的PIPE:{} -> {}", oldPipeId, pipeId);
+        logger.debug("更换已经失效的PIPE:{} -> {}", oldPipeId, pipeId);
         List<Subscribe> retryList = IStore.ofServer().getAll(IStore.server_mq_subscribe, Subscribe.class);
         if (C.notEmpty(retryList)) {
             for (Subscribe subscribe : retryList) {

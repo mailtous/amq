@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Func :
+ * Func : 客户端信息处理中心
  *
  * @author: leeton on 2019/2/25.
  */
