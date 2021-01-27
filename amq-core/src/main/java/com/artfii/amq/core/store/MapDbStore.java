@@ -3,7 +3,6 @@ package com.artfii.amq.core.store;
 import com.artfii.amq.tools.ID;
 import com.artfii.amq.core.Message;
 import com.artfii.amq.core.MqConfig;
-import com.artfii.amq.tools.ID;
 import org.mapdb.BTreeMap;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
@@ -16,45 +15,47 @@ import java.util.HashMap;
  *
  * @author: leeton on 2019/2/18.
  */
-public class ServerStore extends BaseStore {
+public class MapDbStore extends MapDbBaseStore {
 
-    public static ServerStore INST = create();
+    public static MapDbStore INST = create();
 
-    private HashMap<String, DB> db = new HashMap<>();
-    // MQ 收到的所有数据
+    public HashMap<String, DB> db = new HashMap<>();
+ /*   // MQ 收到的所有数据
     private BTreeMap<String, byte[]> all_data = markMap(IStore.server_mq_all_data, Serializer.BYTE_ARRAY);
     // 需要重发的 MQ 数据
     private BTreeMap<String, byte[]> need_retry = markMap(IStore.server_mq_need_retry, Serializer.BYTE_ARRAY);
     private BTreeMap<String, byte[]> mq_subscribe = markMap(IStore.server_mq_subscribe, Serializer.BYTE_ARRAY);
     private BTreeMap<String, byte[]> mq_common_publish = markMap(IStore.server_mq_common_publish, Serializer.BYTE_ARRAY);
-
-    private ServerStore() {
-    }
-    private static synchronized ServerStore create(){
+*/
+    private static synchronized MapDbStore create(){
         if (INST == null) {
-            INST = new ServerStore();
+            INST = new MapDbStore();
         }
         return INST;
     }
 
     @Override
     public DB markDb(String dbName) {
-        DB _db = DBMaker.fileDB(MqConfig.inst.mq_db_store_file_path + dbName)
-                .fileMmapEnableIfSupported()
-                .fileMmapPreclearDisable()
-                .allocateIncrement(1024)
-                .cleanerHackEnable()
-                .closeOnJvmShutdown()
-                .transactionEnable()
-                .concurrencyScale(128)
-                .make();
+        DB _db = INST.db.get(dbName);
+        if (null == _db) {
+            _db = DBMaker.fileDB(MqConfig.inst.mq_db_store_file_path + dbName)
+                    .fileMmapEnableIfSupported()
+                    .fileMmapPreclearDisable()
+                    .allocateIncrement(1024)
+                    .cleanerHackEnable()
+                    .closeOnJvmShutdown()
+                    .transactionEnable()
+                    .concurrencyScale(128)
+                    .make();
 
-        db.put(dbName, _db);
+            INST.db.put(dbName, _db);
+        }
+
         return _db;
     }
 
     public DB getDB(String dbName) {
-        return db.get(dbName);
+        return INST.db.get(dbName);
     }
 
 

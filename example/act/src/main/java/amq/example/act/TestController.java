@@ -20,7 +20,7 @@ import java.util.Map;
 public class TestController {
 
     @Inject
-    private MqAction amqClient;
+    private AmqClient amqClient;
 
     @GetAction("/")
     public String hello(){

@@ -12,7 +12,7 @@
     <version>0.0.1-RELEASE</version>
 
     <properties>
-        <app.entry>amq.example.act.AppStart</app.entry>
+        <app.entry>amq.example.act.ActStart</app.entry>
         <act.version>1.9.1.0</act.version>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>

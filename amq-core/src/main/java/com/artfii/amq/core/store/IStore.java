@@ -9,7 +9,7 @@ import java.util.List;
  */
 public interface IStore {
     static IStore ofServer(){//预留有其它持久化实现的可能
-        return ServerStore.INST;
+        return MapDbStore.INST;
     }
 
     /**

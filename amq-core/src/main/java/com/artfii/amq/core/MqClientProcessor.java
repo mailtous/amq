@@ -5,6 +5,8 @@ import org.osgl.util.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,12 +16,13 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author: leeton on 2019/2/25.
  */
-public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements MqAction {
+public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements MqAction,Serializable {
     private static Logger logger = LoggerFactory.getLogger(MqClientProcessor.class);
 
     private AioPipe<BaseMessage> pipe;
     private AioClient aioClient;
     private static Map<String, Call> callBackMap = new ConcurrentHashMap<>(); //客户端返回的消息包装
+    private static Map<String, Method> callBackMethodMap = new ConcurrentHashMap<>(); //客户端返回的消息包装
     private static Map<String, CompletableFuture<Message>> futureResultMap = new ConcurrentHashMap<>(); //客户端返回的消息包装(仅一次)
     //
     private static String firstPipeId = "";
@@ -96,7 +99,7 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
 
     @Override
     public <V> void subscribe(String topic, Call<V> callBack) {
-        subscribe(topic, null, Message.Life.FOREVER, callBack);
+        subscribe(topic, Message.Life.FOREVER, callBack);
     }
 
     @Override
@@ -109,6 +112,13 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
         Message subscribe = Message.buildSubscribe(topic, v, getNode(), life, Message.Listen.CALLBACK);
         write(subscribe);
         callBackMap.put(subscribe.getSubscribeId(), callBack);
+    }
+
+    @Override
+    public <V> void acceptJob(String topic, Call<V> acceptJobThenExecute) {
+        Message subscribe = Message.buildAcceptJob(topic, getNode());
+        write(subscribe);
+        callBackMap.put(subscribe.getSubscribeId(), acceptJobThenExecute);
     }
 
     @Override
@@ -127,13 +137,6 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
         }
 
         return result;
-    }
-
-    @Override
-    public <V> void acceptJob(String topic, Call<V> acceptJobThenExecute) {
-        Message subscribe = Message.buildAcceptJob(topic, getNode());
-        write(subscribe);
-        callBackMap.put(subscribe.getSubscribeId(), acceptJobThenExecute);
     }
 
     public <V> boolean finishJob(String topic, V v) {
@@ -191,16 +194,11 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
         futureResultMap.remove(key);
     }
 
-    private void removeCallbackMap(String key) {
-        callBackMap.remove(key);
-    }
-
     private Integer getNode() {
         if(null != this.pipe){
             return this.pipe.getId();
         }
         return -1;
     }
-
 
 }

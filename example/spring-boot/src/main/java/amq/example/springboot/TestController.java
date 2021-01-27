@@ -2,7 +2,10 @@ package amq.example.springboot;
 
 import com.artfii.amq.core.Message;
 import com.artfii.amq.core.MqAction;
+import com.artfii.amq.core.anno.AmqService;
+import com.artfii.amq.core.anno.Listener;
 import com.artfii.amq.tester.TestUser;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,10 +21,14 @@ import java.util.Map;
  * @author: leeton on 2019/4/1.
  */
 @RestController
+@AmqService
 public class TestController {
 
-    @Resource
+    @Autowired
     private AmqClient amqClient;
+
+    public TestController() {
+    }
 
     @RequestMapping("/")
     public String hello(){
@@ -47,6 +54,24 @@ public class TestController {
             }
         });
         return "ok";
+    }
+
+    /**
+     * 监听任务主题，接收任务后反馈结果给 JOB 发布者
+     * @param topic
+     */
+    @Listener(topic = "topic_get_userById")
+    public void subscribe(String topic) {
+        TestUser user = new TestUser(2, "alice");
+        amqClient.acceptJob(topic, (Message job)->{
+            if (job != null) {
+                System.err.println("accept a job: " +job);
+                // 完成任务 JOB
+                if (user.getId().equals(job.getV())) {
+                    amqClient.<TestUser>finishJob(topic, user);
+                }
+            }
+        });
     }
 
     /**

@@ -3,6 +3,7 @@ package com.artfii.amq.tester;
 import com.artfii.amq.core.*;
 import com.artfii.amq.core.aio.AioProtocol;
 import com.artfii.amq.core.aio.Call;
+import com.artfii.amq.core.anno.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,10 +32,12 @@ public class TestRecv1 {
         pool.submit(client);
         client.start(channelGroup);
 
+        @Listener
         Call<Message> callback = (msg)->{
             execBack(msg);
         };
-        processor.subscribe("topic_hello",callback);
+
+       processor.subscribe("topic_hello",  callback);
 
     }
 

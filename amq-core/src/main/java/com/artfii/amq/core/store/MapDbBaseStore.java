@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  *
  * @author: leeton on 2019/5/29.
  */
-public abstract class BaseStore implements IStore {
+public abstract class MapDbBaseStore implements IStore {
     ISerializer serializer = ISerializer.Serializer.INST.of();
     protected final static String DEF_TREEMAP_NAME = "amqdata";
     protected static Map<Integer, List> filterListCache = new ConcurrentHashMap<>();
@@ -33,7 +33,7 @@ public abstract class BaseStore implements IStore {
     abstract DB markDb(String dbName);
     abstract DB getDB(String dbName);
 
-    public BTreeMap markMap(String dbName, GroupSerializer seriaType) {
+    public BTreeMap createOrOpen(String dbName, GroupSerializer seriaType) {
         BTreeMap<String, byte[]> myMap = markDb(dbName).treeMap(DEF_TREEMAP_NAME)
                 .keySerializer(Serializer.STRING)
                 .valueSerializer(seriaType)
@@ -44,7 +44,7 @@ public abstract class BaseStore implements IStore {
     }
 
     private BTreeMap getMapBy(String dbName) {
-        BTreeMap map = getDB(dbName).treeMap(DEF_TREEMAP_NAME).open();
+        BTreeMap map = createOrOpen(dbName, Serializer.BYTE_ARRAY);
         return map;
     }
 
