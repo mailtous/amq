@@ -3,6 +3,8 @@ package amq.example.act;
 import act.controller.Controller;
 import com.artfii.amq.core.Message;
 import com.artfii.amq.core.MqAction;
+import com.artfii.amq.core.anno.AmqService;
+import com.artfii.amq.core.anno.Listener;
 import com.artfii.amq.tester.TestUser;
 import org.osgl.mvc.annotation.GetAction;
 
@@ -17,10 +19,13 @@ import java.util.Map;
  * @author: leeton on 2019/4/1.
  */
 @Controller
+@AmqService
 public class TestController {
 
     @Inject
-    private AmqClient amqClient;
+    private MqAction mqAction;
+    @Inject
+    private ScanListener scanListener;
 
     @GetAction("/")
     public String hello(){
@@ -34,20 +39,24 @@ public class TestController {
      */
     @GetAction("/acceptjob")
     public String rec(){
+        String topic = "topic_get_userById";
+        subscribe(topic);
+        return "ok";
+    }
+
+    @Listener(topic = "topic_get_userById")
+    public void subscribe(String topic) {
         TestUser user = new TestUser(2, "alice");
-        String jobTopc = "topic_get_userById";
-        amqClient.acceptJob(jobTopc, (Message job)->{
+        mqAction.acceptJob(topic, (Message job)->{
             if (job != null) {
                 System.err.println("accept a job: " +job);
                 // 完成任务 JOB
                 if (user.getId().equals(job.getV())) {
-                    amqClient.<TestUser>finishJob(jobTopc, user);
+                    mqAction.<TestUser>finishJob(topic, user);
                 }
             }
         });
-        return "ok";
     }
-
 
     /**
      * 发送方
@@ -57,7 +66,7 @@ public class TestController {
     @GetAction("/sendjob")
     public Map send(){
         Map<String, Object> result = new HashMap<>();
-        Message message = amqClient.publishJob("topic_get_userById",2);
+        Message message = mqAction.publishJob("topic_get_userById",2);
         result.put("sendjob", "topic_get_userById");
         result.put("result", message);
         return result;

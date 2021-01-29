@@ -1,5 +1,6 @@
 package com.artfii.amq.core.anno;
 
+import com.artfii.amq.core.MqConfig;
 import com.artfii.amq.scanner.AnnotationDetector;
 
 import java.io.IOException;
@@ -26,7 +27,14 @@ public @interface AmqService {
 
         Scan() {
             try {
-                classList = AnnotationDetector.scanClassPath("amq.example.springboot") // or: scanFiles(File... files)
+                String[] packageArr = null;
+                String scanPackage = MqConfig.inst.client_listener_scan_package;
+                if (scanPackage.indexOf(",") > -1) {
+                    packageArr = scanPackage.split(",");
+                }else {
+                    packageArr[0] = scanPackage;
+                }
+                classList = AnnotationDetector.scanClassPath(packageArr) // or: scanFiles(File... files)
                         .forAnnotations(AmqService.class)
                         .on(ElementType.TYPE)
                         .collect(s -> s.getType());

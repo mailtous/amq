@@ -34,12 +34,11 @@ public class Message<K extends Message.Key, V> implements KV<K, V> {
         m.k = k;
         m.v = v;
         m.type = Type.PUBLISH;
-        Stat stat = new Stat()
+        m.stat = new Stat()
                 .setCtime(now)
                 .setMtime(now)
                 .setDelay(0)
                 .setRetry(0);
-        m.stat = stat;
         return m;
     }
 

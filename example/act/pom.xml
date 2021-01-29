@@ -29,6 +29,12 @@
             <groupId>com.artfii.amq</groupId>
             <artifactId>amq-core</artifactId>
             <version>0.0.1-RELEASE</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jetbrains.kotlin</groupId>
+                    <artifactId>kotlin-stdlib</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
     </dependencies>

@@ -50,7 +50,6 @@ public class AmqClient extends MqClientProcessor implements InitializingBean,App
     @Override
     public void afterPropertiesSet() throws Exception {
         scanAndRegSubscribe();
-
     }
 
     /**
@@ -63,6 +62,7 @@ public class AmqClient extends MqClientProcessor implements InitializingBean,App
                     try {
                         Listener listener = method.getAnnotation(Listener.class);
                         String topic = listener.topic();
+                        method.setAccessible(true);
                         method.invoke(context.getBean(c),topic);
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();

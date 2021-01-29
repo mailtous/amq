@@ -1,6 +1,9 @@
 package amq.example.act;
 
-import com.artfii.amq.core.*;
+import com.artfii.amq.core.AioMqClient;
+import com.artfii.amq.core.MqAction;
+import com.artfii.amq.core.MqClientProcessor;
+import com.artfii.amq.core.MqConfig;
 import com.artfii.amq.core.aio.AioProtocol;
 import com.artfii.amq.core.aio.BaseMessage;
 
@@ -33,6 +36,7 @@ public class AmqClient extends MqClientProcessor {
             e.printStackTrace();
         }
     }
+
 
     public static class Module extends org.osgl.inject.Module {
         @Override

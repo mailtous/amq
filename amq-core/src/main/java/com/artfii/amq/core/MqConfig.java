@@ -41,6 +41,7 @@ public enum MqConfig {
     public long worker_keepalive_second = 30 * 60;
 
     //========================== MQ CONFIG =====================================
+    public String client_listener_scan_package = "amq.example.springboot,amq.example.act";//多项用,分隔
     // 自动确认收到消息
     public boolean mq_auto_acked = true;
 
