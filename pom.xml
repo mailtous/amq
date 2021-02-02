@@ -8,7 +8,7 @@
     <name>artfii-amq</name>
     <groupId>com.artfii.amq</groupId>
     <artifactId>artfii-amq</artifactId>
-    <version>0.0.1-RELEASE</version>
+    <version>0.0.2-RELEASE</version>
     <description>Artfii-mq（AMQ）, Is an extremely lightweight, minimally dependent MQ system. It features easy to use, high performance, and low hardware requirements. </description>
     <url>https://gitee.com/artlongs/amq</url>
 

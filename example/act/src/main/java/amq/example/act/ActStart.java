@@ -1,7 +1,6 @@
 package amq.example.act;
 
 import act.Act;
-import com.artfii.amq.core.AioMqServer;
 
 /**
  * Func :

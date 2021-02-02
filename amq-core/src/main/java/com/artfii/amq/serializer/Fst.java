@@ -1,10 +1,9 @@
 package com.artfii.amq.serializer;
 
 
-import com.artfii.amq.core.JobCallbak;
-import com.artfii.amq.core.aio.BaseMessage;
 import com.artfii.amq.core.Message;
 import com.artfii.amq.core.Subscribe;
+import com.artfii.amq.core.aio.BaseMessage;
 import com.artfii.amq.http.Render;
 import com.artfii.amq.tester.TestUser;
 import com.artfii.amq.tools.io.Buffers;
@@ -28,7 +27,6 @@ public class Fst implements ISerializer {
         fst.registerClass(Render.class);
         fst.registerClass(Render.Fmt.class);
         fst.registerClass(TestUser.class);
-        fst.registerClass(JobCallbak.class);
     }
 
     public <T> byte[] toByte(T obj) {

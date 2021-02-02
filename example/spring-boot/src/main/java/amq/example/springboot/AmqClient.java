@@ -1,20 +1,15 @@
 package amq.example.springboot;
 
-import com.artfii.amq.core.*;
+import com.artfii.amq.core.AioMqClient;
+import com.artfii.amq.core.Message;
+import com.artfii.amq.core.MqClientProcessor;
+import com.artfii.amq.core.MqConfig;
 import com.artfii.amq.core.aio.AioProtocol;
-import com.artfii.amq.core.anno.AmqService;
-import com.artfii.amq.core.anno.Listener;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.channels.AsynchronousChannelGroup;
-import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -23,7 +18,7 @@ import java.util.concurrent.ExecutionException;
  * @author: leeton on 2019/4/1.
  */
 @Component
-public class AmqClient extends MqClientProcessor implements InitializingBean,ApplicationContextAware {
+public class AmqClient extends MqClientProcessor  {
     private ApplicationContext context;
 
     public AmqClient() {
@@ -41,45 +36,6 @@ public class AmqClient extends MqClientProcessor implements InitializingBean,App
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-    }
-
-    /**
-     * SPRING 初始化完成后，执行扫描 MQ 订阅类
-     * @throws Exception
-     */
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        scanAndRegSubscribe();
-    }
-
-    /**
-     * 扫描 Listener 注解
-     */
-    private void scanAndRegSubscribe(){
-        for (Class c : AmqService.Scan.inst.classList) {
-            Arrays.stream(c.getMethods()).forEach(method -> {
-                if (method.isAnnotationPresent(Listener.class)) {
-                    try {
-                        Listener listener = method.getAnnotation(Listener.class);
-                        String topic = listener.topic();
-                        method.setAccessible(true);
-                        method.invoke(context.getBean(c),topic);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
-                    } catch (BeansException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-            });
-        }
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.context = applicationContext;
     }
 
 }

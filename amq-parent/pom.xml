@@ -8,12 +8,12 @@
     <parent>
         <groupId>com.artfii.amq</groupId>
         <artifactId>artfii-amq</artifactId>
-        <version>0.0.1-RELEASE</version>
+        <version>0.0.2-RELEASE</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <groupId>com.artfii.amq</groupId>
     <artifactId>amq-parent</artifactId>
-    <version>0.0.1-RELEASE</version>
+    <version>0.0.2-RELEASE</version>
 
     <modules>
         <module>../amq-core</module>

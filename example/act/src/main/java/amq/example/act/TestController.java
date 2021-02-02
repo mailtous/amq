@@ -49,11 +49,12 @@ public class TestController {
         TestUser user = new TestUser(2, "alice");
         mqAction.acceptJob(topic, (Message job)->{
             if (job != null) {
-                System.err.println("accept a job: " +job);
+               /* System.err.println("accept a job: " +job);
                 // 完成任务 JOB
                 if (user.getId().equals(job.getV())) {
                     mqAction.<TestUser>finishJob(topic, user);
-                }
+                }*/
+                System.err.println(job);
             }
         });
     }
