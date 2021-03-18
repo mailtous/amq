@@ -32,7 +32,7 @@ Aio的源码来源于 [smart-socket](https://github.com/smartboot/smart-socket) 
 <dependency>
     <groupId>com.artfii.amq</groupId>
     <artifactId>artfii-amq</artifactId>
-    <version>0.0.2-RELEASE</version>
+    <version>0.0.4-RELEASE</version>
 </dependency>
 ```
 
