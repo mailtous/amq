@@ -19,7 +19,7 @@
         <module>../amq-core</module>
         <module>../amq-pro</module>
         <!-- 发布前关闭 example -->
-        <module>../example</module>
+        <!--<module>../example</module>-->
     </modules>
 
     <profiles>
