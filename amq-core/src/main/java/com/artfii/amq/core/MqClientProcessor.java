@@ -1,12 +1,10 @@
 package com.artfii.amq.core;
 
 import com.artfii.amq.core.aio.*;
+import com.artfii.amq.tools.MqLogger;
 import org.osgl.util.C;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,13 +15,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author: leeton on 2019/2/25.
  */
 public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements MqAction,Serializable {
-    private static Logger logger = LoggerFactory.getLogger(MqClientProcessor.class);
+    private static MqLogger mqLogger = MqLogger.build(MqClientProcessor.class);
 
     private AioPipe<BaseMessage> pipe;
     private AioClient aioClient;
-    private static Map<String, Call> callBackMap = new ConcurrentHashMap<>(); //客户端返回的消息包装
-    private static Map<String, Method> callBackMethodMap = new ConcurrentHashMap<>(); //客户端返回的消息包装
-    private static Map<String, CompletableFuture<Message>> futureResultMap = new ConcurrentHashMap<>(); //客户端返回的消息包装(仅一次)
+    private static Map<String, Call> callBackMap = new ConcurrentHashMap<>(); //客户端返回的消息包装（可多次）
+    private static Map<String, CompletableFuture<Message>> onceFutureResultMap = new ConcurrentHashMap<>(); //客户端返回的消息包装(仅一次)
     //
     private static String firstPipeId = "";
 
@@ -33,7 +30,7 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
         if(BaseMsgType.RE_CONNECT_RSP == message.getHead().getKind()){ //服务端-->断线重连
             String pipeId = new String(message.getHead().getSlot()).trim();
             if (firstPipeId == "") { //第一次,保存最初的pipeID
-                logger.warn("服务端-->最初的pipeID:{}",pipeId);
+                mqLogger.debug("服务端-->最初的pipeID:{}",pipeId);
                 firstPipeId = pipeId;
             }else { // 第二次以上说明是服务器重启了,需要更换 pipeId
                 sendReplacePipeId(pipe, firstPipeId, pipeId);
@@ -50,18 +47,19 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
             if (null != message) {
                 String subscribeId = message.getSubscribeId();
                 if (C.notEmpty(callBackMap) && null != callBackMap.get(subscribeId)) {
+                    //自动签收
                     autoAckOfSubribe(message);
                     Call call = callBackMap.get(subscribeId);
                     if (null != call) {
                         call.back(message);
                     }
                 }
-                if (C.notEmpty(futureResultMap) && null != futureResultMap.get(subscribeId)) {
-                    futureResultMap.get(subscribeId).complete(message);
+                if (C.notEmpty(onceFutureResultMap) && null != onceFutureResultMap.get(subscribeId)) {
+                    onceFutureResultMap.get(subscribeId).complete(message);
                 }
             }
         } catch (Exception e) {
-            logger.error("[C] Client prcess decode exception: ", e);
+            mqLogger.error("[C] Client prcess decode exception: ", e);
         }
     }
     /**
@@ -69,7 +67,7 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
      * @param aioPipe
      */
     private void sendReplacePipeId(AioPipe aioPipe, String oldPipeId,String newPipeid) {
-        logger.warn("服务器重启过了,更换PIPEID: {} -> {} ",oldPipeId,newPipeid);
+        mqLogger.warn("服务器重启过了,更换PIPEID: {} -> {} ",oldPipeId,newPipeid);
         byte[] includeInfo = (oldPipeId+","+newPipeid).getBytes();
         BaseMessage baseMessage = BaseMessage.ofHead(BaseMsgType.RE_CONNECT_REQ, includeInfo);
         aioPipe.write(baseMessage);
@@ -109,39 +107,41 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
 
     @Override
     public <V> void subscribe(String topic, V v, Message.Life life, Call<V> callBack) {
-        Message subscribe = Message.buildSubscribe(topic, v, getNode(), life, Message.Listen.CALLBACK);
-        write(subscribe);
-        callBackMap.put(subscribe.getSubscribeId(), callBack);
+        if (MqConfig.inst.isMatchLocalTopic(topic)) {
+            Message subscribe = Message.buildSubscribe(topic, v, getNode(), life, Message.Listen.CALLBACK);
+            write(subscribe);
+            callBackMap.put(subscribe.getSubscribeId(), callBack);
+        }
     }
 
     @Override
     public <V> void acceptJob(String topic, Call<V> acceptJobThenExecute) {
-        Message subscribe = Message.buildAcceptJob(topic, getNode());
-        write(subscribe);
-        callBackMap.put(subscribe.getSubscribeId(), acceptJobThenExecute);
+        if (MqConfig.inst.isMatchLocalTopic(topic)) {
+            Message subscribe = Message.buildAcceptJob(topic, getNode());
+            write(subscribe);
+            callBackMap.put(subscribe.getSubscribeId(), acceptJobThenExecute);
+        }
     }
 
     @Override
-    public <V> Message publishJob(String topic, V v) {
-        Message job = Message.buildPublishJob(topic, v, getNode());
+    public <V> Message pingJob(String topic, V v) {
+        Message job = Message.buildPingJob(topic, v, getNode());
         String jobId = job.getK().getId();
         // 发布一个 future ,等任务完成后读取结果.
-        futureResultMap.put(jobId, new CompletableFuture<Message>());
+        onceFutureResultMap.put(jobId, new CompletableFuture<Message>());
         write(job);
-        Message result = futureResultMap.get(jobId).join();
+        Message result = onceFutureResultMap.get(jobId).join();
         if (null != result) {
-            if (MqConfig.inst.mq_auto_acked) {
-                ack(result.getSubscribeId());
-            }
+            ofEndJob(jobId);
             removeFutureResultMap(result.getSubscribeId());
         }
 
         return result;
     }
 
-    public <V> boolean finishJob(String topic, V v) {
+    public <V> boolean pongJob(String topic, V v) {
         try {
-            Message<Message.Key, V> finishJob = Message.buildFinishJob(topic, v, getNode());
+            Message<Message.Key, V> finishJob = Message.buildPongJob(topic, v, getNode());
             return write(finishJob);
         } catch (Exception e) {
             e.printStackTrace();
@@ -151,7 +151,17 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
 
     @Override
     public boolean ack(String messageId) {
-        Message message = Message.buildAck(messageId, Message.Life.SPARK);
+        Message message = Message.buildAck(messageId);
+        return write(message);
+    }
+
+    /**
+     * 工作任务完成，执行清理
+     * @param msgIdOfEnd
+     * @return
+     */
+    private boolean ofEndJob(String msgIdOfEnd) {
+        Message message = Message.buildOfEndJob(msgIdOfEnd);
         return write(message);
     }
 
@@ -163,7 +173,7 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
      */
     private void autoAckOfSubribe(Message message) {
         if (Message.Life.FOREVER != message.getLife()) {
-            ack(message.getSubscribeId());
+            ack(message.getK().getId());
         }
     }
 
@@ -186,12 +196,12 @@ public class MqClientProcessor extends AioBaseProcessor<BaseMessage> implements 
             throwable.printStackTrace();
         }
         if (State.NEW_PIPE != state) {
-            logger.warn("[C]消息处理,状态:{}, EX:{}", state.toString(), throwable);
+            mqLogger.warn("[C]消息处理,状态:{}, EX:{}", state.toString(), throwable);
         }
     }
 
     private void removeFutureResultMap(String key) {
-        futureResultMap.remove(key);
+        onceFutureResultMap.remove(key);
     }
 
     private Integer getNode() {

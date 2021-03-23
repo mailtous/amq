@@ -1,6 +1,9 @@
 package com.artfii.amq.core;
 
-import com.artfii.amq.core.aio.*;
+import com.artfii.amq.core.aio.AioPipe;
+import com.artfii.amq.core.aio.AioServer;
+import com.artfii.amq.core.aio.BaseMessage;
+import com.artfii.amq.core.aio.BaseMsgType;
 import com.artfii.amq.core.aio.plugin.MonitorPlugin;
 import com.artfii.amq.core.event.JobEvent;
 import com.artfii.amq.core.event.JobEvnetHandler;
@@ -13,13 +16,14 @@ import com.artfii.amq.disruptor.util.DaemonThreadFactory;
 import com.artfii.amq.tools.FastList;
 import com.artfii.amq.tools.IOUtils;
 import com.artfii.amq.tools.RingBufferQueue;
-import com.artfii.amq.core.aio.AioPipe;
-import com.artfii.amq.core.aio.AioServer;
 import org.osgl.util.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutorService;
 
@@ -45,7 +49,7 @@ public enum ProcessorImpl implements MqProcessor {
     /**
      * 发布的工作任务缓存
      **/
-    private static ConcurrentSkipListMap<String, Message> cache_public_job = new ConcurrentSkipListMap();
+    private static ConcurrentSkipListMap<String, Message> cache_ping_job = new ConcurrentSkipListMap();
 
     /**
      * 订阅的缓存 RingBufferQueue(Subscribe)
@@ -135,19 +139,21 @@ public enum ProcessorImpl implements MqProcessor {
                 }
             }
             String msgId = message.getK().getId();
+
+            if (Message.Type.END_JOB == message.getType()) {//工作任务完成，执行清理
+                clearOfEndJob(message);
+                return;
+            }
             if (message.ackMsgTF()) { // ACK 消息
                 incrAck();
-                if (Message.Life.SPARK == message.getLife()) {
-                    removeSubscribeCacheOnAck(msgId);
-                    removeDbDataOfDone(msgId);
-                } else {
-                    Integer clientNode = getNode(pipe);
-                    upStatOfACK(clientNode, message);
-                }
+                Integer clientNode = getNode(pipe);
+                //写标志已签收
+                upStatOfACK(clientNode, message);
+
             } else {
                 if (message.subscribeTF()) { // subscribe msg
                     addSubscribeIF(pipe, message);
-                    if (isAcceptJob(message)) { // 如果工作任务已经先一步发布了,则触发-->直接把任务发给订阅者
+                    if (isAcceptJob(message)) { // 如果工作任务(PING)已经先一步发布了,则触发-->直接把任务发给订阅者
                         incrAccpetJob();
                         triggerDirectSendJobToAcceptor(pipe, message);
                     }else {
@@ -157,9 +163,9 @@ public enum ProcessorImpl implements MqProcessor {
                     return;
 
                 } else {
-                    if (isPublishJob(message)) { // 发布的消息为工作任务(pingpong)
+                    if (isPingJob(message)) { // 发布的消息为工作任务(ping/pong模式)
                         incrPublishJob();
-                        cachePubliceJobMessage(msgId, message);
+                        cachePingJobMessage(msgId, message);
                         buildSubscribeWaitingJobResult(pipe, message);
                         Subscribe acceptor = getSubscribe(message.getK().getTopic());
                         if (null != acceptor) { // 本任务已经有订阅者
@@ -171,8 +177,8 @@ public enum ProcessorImpl implements MqProcessor {
                         if (Message.Life.SPARK != message.getLife()) {
                             cacheCommonPublishMessage(msgId, message);
                         }
-                        // 发布消息
-                        sendMessageToSubcribe(message);
+                        // 发送普通消息
+                        sendMessageToSubcribeList(message);
                     }
                 }
             }
@@ -181,6 +187,7 @@ public enum ProcessorImpl implements MqProcessor {
     }
 
     /**
+     * 处理中心消息入口
      * 分派消息,并把消息持久化放到线程池里去执行
      *
      * @param message
@@ -194,7 +201,6 @@ public enum ProcessorImpl implements MqProcessor {
     private void pulishJobEvent(AioPipe<Message> pipe,Message message) {
         job_worker.publishEvent(JobEvent::translate,pipe, message);
     }
-
 
     /**
      * 分派消息
@@ -229,8 +235,8 @@ public enum ProcessorImpl implements MqProcessor {
      */
     private boolean addSubscribeIF(AioPipe pipe, Message message) {
         if (message.subscribeTF()) {
-            String clientKey = message.getK().getId();
-            Subscribe subscribe = new Subscribe(clientKey, message.getK().getTopic(), pipe.getId(), message.getLife(), message.getListen(), System.currentTimeMillis());
+            String msgId = message.getK().getId();
+            Subscribe subscribe = new Subscribe(msgId, message.getK().getTopic(), pipe.getId(), message.getLife(), message.getListen(), System.currentTimeMillis());
             RingBufferQueue.Result result = cache_subscribe.putIfAbsent(subscribe);
             if (result.success) {
                 subscribe.setIdx(result.index);
@@ -248,15 +254,31 @@ public enum ProcessorImpl implements MqProcessor {
      * @param ack
      */
     private void upStatOfACK(Integer clientNode, Message ack) {
-        String ackId = ack.getK().getId();
-        Message message = getMessageOfCache(ackId);
+        String ackOfMsgId = (String) ack.getV();
+        Message message = getMessageOfCache(ackOfMsgId);
         if (null != message) {
             message.upStatOfACK(clientNode);
+            if (Message.Life.SPARK == message.getLife()) {
+                removeSubscribeCacheOnAck(ackOfMsgId);
+                removeDbDataOfDone(ackOfMsgId);
+            }
         }
+
+    }
+
+    private void clearOfEndJob(Message endJob) {
+        String endOfMsgId = (String) endJob.getV();
+        Message endMsg = getMessageOfCache(endOfMsgId);
+        if (null != endMsg) {
+            removePingJobOfAcked(endOfMsgId);
+            removeSubscribeCacheOnAck(endOfMsgId);
+            removeDbDataOfDone(endOfMsgId);
+        }
+
     }
 
     /**
-     * 消息类型为 {@link Message.Type#PUBLISH_JOB} 时,自动为它创建一个订阅,以收取任务结果
+     * 消息类型为 {@link Message.Type#PING_JOB} 时,自动为它创建一个订阅,以收取任务结果
      * NOTE: 这里是实时的收取任务结果,所以不需要保存到硬盘
      *
      * @param pipe
@@ -265,7 +287,7 @@ public enum ProcessorImpl implements MqProcessor {
      */
     private boolean buildSubscribeWaitingJobResult(AioPipe pipe, Message message) {
         String jobId = message.getK().getId();
-        String jobTopc = Message.buildFinishJobTopic(message.getK().getTopic());
+        String jobTopc = Message.buildPongJobTopic(message.getK().getTopic());
         Subscribe subscribe = new Subscribe(jobId, jobTopc, pipe.getId(), message.getLife(), message.getListen(), System.currentTimeMillis());
         RingBufferQueue.Result result = cache_subscribe.putIfAbsent(subscribe);
         if (result.success) {
@@ -310,7 +332,8 @@ public enum ProcessorImpl implements MqProcessor {
      *
      * @param message
      */
-    private void sendMessageToSubcribe(Message message) {
+    private void sendMessageToSubcribeList(Message message) {
+        if(Message.Type.END_JOB == message.getType()) return;
         String topic = message.getK().getTopic();
         FastList<Subscribe> subscribeList = subscribeMatchOfTopic(topic);
         for (Subscribe subscribe : subscribeList) {
@@ -334,8 +357,13 @@ public enum ProcessorImpl implements MqProcessor {
     private void sendMessageToSubcribe(Message message, Subscribe subscribe) {
         // 当前的消息,客户端已签收过
         if (isAcked(message, subscribe)) return;
+
         //追加订阅者的消息ID及状态
         changeMessageOnReply(subscribe, message);
+
+        //如果是 PINGJOB 并且发送过一次，则直接返回
+        if (Message.Type.PING_JOB == message.getType() && isSended(message, subscribe.getPipeId())) return;
+
         // 发送消息给订阅方
         AioPipe pipe = getPipeBy(subscribe.getPipeId());
         boolean writed = write(pipe, message);
@@ -345,6 +373,16 @@ public enum ProcessorImpl implements MqProcessor {
             onSendFailToBackup(message);
         }
 
+    }
+
+    private boolean isSended(Message message, Integer nodePipeId) {
+        if(null ==message.getStat()) return false;
+        Set<Integer> sendedList = message.getStat().getNodesDelivered();
+        if(null == sendedList || 0 == sendedList.size()) return false;
+        for (Integer node : sendedList) {
+            if(node.equals(nodePipeId)) return true;
+        }
+        return false;
     }
 
     private boolean write(AioPipe pipe, Message message) {
@@ -363,7 +401,7 @@ public enum ProcessorImpl implements MqProcessor {
         int ackedSize = message.ackedSize();
         if (ackedSize >= subscribeSize) {
             String msgId = message.getK().getId();
-            removeCacheOfDone(msgId);
+            removeCommonMsgCacheOfDone(msgId);
             removeDbDataOfDone(msgId);
             return true;
         }
@@ -404,17 +442,24 @@ public enum ProcessorImpl implements MqProcessor {
     }
 
     /**
-     * 当前的消息,客户端已签收过
+     * 当前的消息,客户端是否已签收
+     * 如果是 PING/PONG 模式，消息仅允许唯一node接收
      *
      * @param message
      * @param subscribe
      * @return
      */
     private boolean isAcked(Message message, Subscribe subscribe) {
+        if(null == message.getStat()) return false;
+        if(null == message.getStat().getNodesConfirmed() || 0== message.getStat().getNodesConfirmed().size()) return false;
         Set<Integer> comfirmList = message.getStat().getNodesConfirmed();
         if (C.notEmpty(comfirmList)) {
-            for (Integer confirm : comfirmList) {
-                if (confirm.equals(subscribe.getPipeId())) return true;
+            if (isPingJob(message)) {//如果是 PING/PONG 模式，消息仅发送一次
+                 return true; //comfirmList不为空，说明有node 接收过，故中止发送
+            }else {//普通消息
+                for (Integer confirm : comfirmList) {//判断当前 NODE 是否接收过消息
+                    if (confirm.equals(subscribe.getPipeId())) return true;
+                }
             }
         }
         return false;
@@ -438,6 +483,24 @@ public enum ProcessorImpl implements MqProcessor {
     }
 
     /**
+     * 客户端节点已签收过消息
+     * @param msg
+     * @param clientPipeId
+     * @return
+     */
+    private boolean clientIsAcked(Message msg,Integer clientPipeId){
+        if (null != msg.getStat()) {
+            Set<Integer> confirmedClients = msg.getStat().getNodesConfirmed();
+            if (null != confirmedClients && confirmedClients.size() > 0) {
+                for (Integer p : confirmedClients) {
+                    if(p.equals(clientPipeId)) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * 客户端的通信通道 ID
      *
      * @param pipe
@@ -455,16 +518,16 @@ public enum ProcessorImpl implements MqProcessor {
         cache_common_publish_message.putIfAbsent(key, message);
     }
 
-    private void cachePubliceJobMessage(String key, Message message) {
-        cache_public_job.putIfAbsent(key, message);
+    private void cachePingJobMessage(String key, Message message) {
+        cache_ping_job.putIfAbsent(key, message);
     }
 
-    public void removeCacheOfDone(String key) {
+    public void removeCommonMsgCacheOfDone(String key) {
         cache_common_publish_message.remove(key);
         cache_falt_message.remove(key);
     }
-    public void removePublishJobOfAcked(String key) {
-        cache_public_job.remove(key);
+    public void removePingJobOfAcked(String key) {
+        cache_ping_job.remove(key);
         cache_falt_message.remove(key);
     }
 
@@ -498,8 +561,8 @@ public enum ProcessorImpl implements MqProcessor {
         IStore.ofServer().remove(IStore.server_mq_subscribe, subscribeId);
     }
 
-    private boolean isPublishJob(Message message) {
-        return Message.Type.PUBLISH_JOB == message.getType();
+    private boolean isPingJob(Message message) {
+        return Message.Type.PING_JOB == message.getType();
     }
 
     private boolean isAcceptJob(Message message) {
@@ -514,7 +577,7 @@ public enum ProcessorImpl implements MqProcessor {
      */
     private void triggerDirectSendJobToAcceptor(AioPipe pipe, Message acceptor) {
         String topic = acceptor.getK().getTopic();
-        Message job = matchPublishJob(topic);
+        Message job = matchPingJob(topic);
         if (null != job) {
             Subscribe subscribe = new Subscribe(acceptor.getK().getId(), topic, pipe.getId(), acceptor.getLife(), acceptor.getListen(), System.currentTimeMillis());
             sendMessageToSubcribe(job, subscribe);
@@ -527,9 +590,9 @@ public enum ProcessorImpl implements MqProcessor {
      * @param topic
      * @return
      */
-    private Message matchPublishJob(String topic) {
-        if (cache_public_job.size() == 0) return null;
-        final Collection<Message> messageList = cache_public_job.values();
+    private Message matchPingJob(String topic) {
+        if (cache_ping_job.size() == 0) return null;
+        final Collection<Message> messageList = cache_ping_job.values();
         for (Message message : messageList) {
             if (message.getK().getTopic().startsWith(topic)) return message;
         }
@@ -549,7 +612,7 @@ public enum ProcessorImpl implements MqProcessor {
     }
 
     private void clearAllCache() {
-        cache_public_job.clear();
+        cache_ping_job.clear();
         cache_falt_message.clear();
         cache_common_publish_message.clear();
         cache_subscribe.clear();
@@ -576,7 +639,7 @@ public enum ProcessorImpl implements MqProcessor {
     }
 
     public ConcurrentSkipListMap<String, Message> getCache_public_job() {
-        return cache_public_job;
+        return cache_ping_job;
     }
 
     public RingBufferQueue<Subscribe> getCache_subscribe() {

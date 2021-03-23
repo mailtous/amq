@@ -32,10 +32,16 @@ Aio的源码来源于 [smart-socket](https://github.com/smartboot/smart-socket) 
 <dependency>
     <groupId>com.artfii.amq</groupId>
     <artifactId>artfii-amq</artifactId>
-    <version>0.0.4-RELEASE</version>
+    <version>0.0.5-RELEASE</version>
 </dependency>
 ```
 
 # 注意事项:
 
 AMQ 的持久化方案使用了内嵌型的 MAPDB,而 MAPDB 是用 Kotlin 编写的,故使用IDEA进行原码编译的话,需求安装 Kotlin plugin.
+
+
+# TODO:
+1. 客户端分组，设立组长，组内竞争排它性的消费消息，以保证消息消费的唯一性。外部通讯由组长完成，以减少分布式多客户端时重复的无用的通讯
+2. 开发模式下的客户端有自己的唯一名称，以保证团队开发时，消息只能由开发者唯一消费，方便断点调试
+3. 客户端（同一局域网内）增加注册自己的监听主题，以方便一对一调试。

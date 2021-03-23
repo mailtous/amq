@@ -55,10 +55,10 @@ public interface MqAction {
      * @param <V>
      * @return
      */
-    <V> Message publishJob(String topic, V v);
+    <V> Message pingJob(String topic, V v);
 
     /**
-     * 接受一个工作任务
+     * 接受一个工作任务(特殊的只订阅PING)
      *
      * @param topic
      * @param acceptJobThenExecute 回调方法
@@ -73,7 +73,7 @@ public interface MqAction {
      * @param v           执行结果
      * @return
      */
-    <V> boolean finishJob(String topic, V v);
+    <V> boolean pongJob(String topic, V v);
 
     /**
      * 确认收到消息(签收)

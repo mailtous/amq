@@ -52,7 +52,7 @@ public class TestController {
                 System.err.println("accept a job: " +job);
                 // 完成任务 JOB
                 if (user.getId().equals(job.getV())) {
-                    mqAction.<TestUser>finishJob(topic, user);
+                    mqAction.<TestUser>pongJob(topic, user);
                 }
                 System.err.println(job);
             }
@@ -67,7 +67,7 @@ public class TestController {
     @GetAction("/sendjob")
     public Map send(){
         Map<String, Object> result = new HashMap<>();
-        Message message = mqAction.publishJob("topic_get_userById",2);
+        Message message = mqAction.pingJob("topic_get_userById",2);
         result.put("sendjob", "topic_get_userById");
         result.put("result", message);
         return result;

@@ -1,16 +1,13 @@
 package amq.example.springboot;
 
 import com.artfii.amq.core.Message;
-import com.artfii.amq.core.MqAction;
 import com.artfii.amq.core.anno.AmqService;
 import com.artfii.amq.core.anno.Listener;
 import com.artfii.amq.tester.TestUser;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,7 +46,7 @@ public class TestController {
                 System.err.println("accept a job: " +job);
                 // 完成任务 JOB
                 if (user.getId().equals(job.getV())) {
-                    amqClient.<TestUser>finishJob(jobTopc, user);
+                    amqClient.<TestUser>pongJob(jobTopc, user);
                 }
             }
         });
@@ -68,7 +65,7 @@ public class TestController {
                 System.err.println("accept a job: " +job);
                 // 完成任务 JOB
                 if (user.getId().equals(job.getV())) {
-                    amqClient.<TestUser>finishJob(topic, user);
+                    amqClient.<TestUser>pongJob(topic, user);
                 }
             }
         });
@@ -82,7 +79,7 @@ public class TestController {
     @RequestMapping("/sendjob")
     public Map send(){
         Map<String, Object> result = new HashMap<>();
-        Message message = amqClient.publishJob("topic_get_userById",2);
+        Message message = amqClient.pingJob("topic_get_userById",2);
         result.put("sendjob", "topic_get_userById");
         result.put("result", message);
         return result;

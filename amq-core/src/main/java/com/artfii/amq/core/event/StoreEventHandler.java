@@ -1,7 +1,5 @@
 package com.artfii.amq.core.event;
 
-import com.artfii.amq.core.store.IStore;
-import com.artfii.amq.disruptor.WorkHandler;
 import com.artfii.amq.core.Message;
 import com.artfii.amq.core.Subscribe;
 import com.artfii.amq.core.store.IStore;
@@ -53,7 +51,7 @@ public class StoreEventHandler implements WorkHandler<JobEvent> {
                 return IStore.server_mq_subscribe;
             case PUBLISH:
                 return IStore.server_mq_common_publish;
-            case PUBLISH_JOB:
+            case PING_JOB:
                 return IStore.server_mq_common_publish;
         }
         return dbName;

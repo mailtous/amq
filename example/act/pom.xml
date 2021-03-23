@@ -6,10 +6,10 @@
     <parent>
         <artifactId>example</artifactId>
         <groupId>com.artfii.amq</groupId>
-        <version>0.0.4-RELEASE</version>
+        <version>0.0.5-RELEASE</version>
     </parent>
     <artifactId>act</artifactId>
-    <version>0.0.4-RELEASE</version>
+    <version>0.0.5-RELEASE</version>
 
     <properties>
         <app.entry>amq.example.act.ActStart</app.entry>
@@ -28,7 +28,7 @@
         <dependency>
             <groupId>com.artfii.amq</groupId>
             <artifactId>amq-core</artifactId>
-            <version>0.0.4-RELEASE</version>
+            <version>0.0.5-RELEASE</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.jetbrains.kotlin</groupId>

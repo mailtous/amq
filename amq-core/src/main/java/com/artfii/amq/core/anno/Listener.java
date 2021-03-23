@@ -1,18 +1,9 @@
 package com.artfii.amq.core.anno;
 
-import com.artfii.amq.core.MqClientProcessor;
-import com.artfii.amq.http.routes.Route;
-import com.artfii.amq.scanner.AnnotationDetector;
-
-import java.io.IOException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * 用来标志 Listener

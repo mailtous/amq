@@ -1,13 +1,12 @@
 package com.artfii.amq.core;
 
 import com.artfii.amq.conf.PropUtil;
+import com.google.common.base.Strings;
 
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * MQ及 IO 配置项
@@ -19,6 +18,14 @@ public enum MqConfig {
     public Charset utf_8 = StandardCharsets.UTF_8;
     public String prop_file_and_path = "amq.properties";
     public String profile = "";
+    //显示调试信息
+    public boolean show_debug = false;
+
+    //开启本地设置本机监听的主题列表独占模式，影响：localhost_listen_topic_list
+    public boolean open_localhost_topic_oneself = false;
+
+    //设置本机监听的主题列表(主题的前缀以模糊匹配)，以便独占消费
+    public String localhost_listen_topic_list = "";
 
     //========================== IO CONFIG =====================================
     public String host = "127.0.0.1";
@@ -96,16 +103,45 @@ public enum MqConfig {
             }
             for (Object pKey : props.keySet()) {
                 String ppKey = (String)pKey;
+                String v = props.getProperty((String) pKey).trim().intern();
                 if(ppKey.startsWith(profile)){ // 按 env 取值
-                    String v = props.getProperty((String) pKey).trim();
-                    String fieldKey = ppKey.replace(profile + ".", "");
-                    Field field = fieldMap.get(fieldKey);
-                    PropUtil.setField(this,field, v);
+                    ppKey = ppKey.replace(profile + ".", "");
+                }
+                if(null != fieldMap.get(ppKey)){
+                    PropUtil.setField(this,fieldMap.get(ppKey), v);
                 }
             }
             fieldMap.clear();
         }
 
+    }
+
+    /**
+     * 是否匹配本机设置的监听主题
+     * @param searchTopic
+     * @return
+     */
+    public boolean isMatchLocalTopic(String searchTopic) {
+        if("dev".equalsIgnoreCase(profile) && open_localhost_topic_oneself){// DEV 环境且独占模式开启
+            List<String> topicList = getLocalHostListenTopicList();
+            if(topicList.size()==0) return false;
+            for (String s : topicList) {
+                if(searchTopic.startsWith(s))return true;
+            }
+            return false;
+        }
+        return true;
+    }
+
+    private List<String> getLocalHostListenTopicList() {
+        List list = new ArrayList(20);
+        if (!Strings.isNullOrEmpty(localhost_listen_topic_list)) {
+            String[] arr = localhost_listen_topic_list.split(",");
+            for (String s: arr){
+                list.add(s.trim().intern().replace("*",""));
+            }
+        }
+        return list;
     }
 
 

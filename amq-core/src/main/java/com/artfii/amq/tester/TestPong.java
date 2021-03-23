@@ -1,6 +1,9 @@
 package com.artfii.amq.tester;
 
-import com.artfii.amq.core.*;
+import com.artfii.amq.core.AioMqClient;
+import com.artfii.amq.core.Message;
+import com.artfii.amq.core.MqClientProcessor;
+import com.artfii.amq.core.MqConfig;
 import com.artfii.amq.core.aio.AioProtocol;
 
 import java.io.IOException;
@@ -28,7 +31,7 @@ public class TestPong {
                 System.err.println(job);// 收到的 JOB
                 // 完成任务 JOB
                 if (user.getId().equals(job.getV())) {
-                    processor.<TestUser>finishJob(jobTopc, user);
+                    processor.<TestUser>pongJob(jobTopc, user);
                 }
             }
         });

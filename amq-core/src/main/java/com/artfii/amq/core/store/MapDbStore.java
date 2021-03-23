@@ -1,12 +1,10 @@
 package com.artfii.amq.core.store;
 
-import com.artfii.amq.tools.ID;
 import com.artfii.amq.core.Message;
 import com.artfii.amq.core.MqConfig;
-import org.mapdb.BTreeMap;
+import com.artfii.amq.tools.ID;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
-import org.mapdb.Serializer;
 
 import java.util.HashMap;
 
@@ -41,7 +39,7 @@ public class MapDbStore extends MapDbBaseStore {
             _db = DBMaker.fileDB(MqConfig.inst.mq_db_store_file_path + dbName)
                     .fileMmapEnableIfSupported()
                     .fileMmapPreclearDisable()
-                    .allocateIncrement(1024)
+                    .allocateIncrement(512)
                     .cleanerHackEnable()
                     .closeOnJvmShutdown()
                     .transactionEnable()

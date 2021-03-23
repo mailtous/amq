@@ -3,7 +3,6 @@ package amq.example.springboot;
 import com.artfii.amq.core.Message;
 import com.artfii.amq.core.MqAction;
 import com.artfii.amq.tester.TestUser;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -43,7 +42,7 @@ public class TestSslController {
                 System.err.println("accept a job: " +job);
                 // 完成任务 JOB
                 if (user.getId().equals(job.getV())) {
-                    amqSSLClient.<TestUser>finishJob(jobTopc, user);
+                    amqSSLClient.<TestUser>pongJob(jobTopc, user);
                 }
             }
         });
@@ -59,7 +58,7 @@ public class TestSslController {
     @RequestMapping("/sendjob")
     public Map send(){
         Map<String, Object> result = new HashMap<>();
-        Message message = amqSSLClient.publishJob("topic_get_userById",2);
+        Message message = amqSSLClient.pingJob("topic_get_userById",2);
         result.put("sendjob", "topic_get_userById");
         result.put("result", message);
         return result;

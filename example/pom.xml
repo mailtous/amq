@@ -8,13 +8,13 @@
     <parent>
         <groupId>com.artfii.amq</groupId>
         <artifactId>amq-parent</artifactId>
-        <version>0.0.4-RELEASE</version>
+        <version>0.0.5-RELEASE</version>
         <relativePath>../amq-parent</relativePath>
     </parent>
 
     <groupId>com.artfii.amq</groupId>
     <artifactId>example</artifactId>
-    <version>0.0.4-RELEASE</version>
+    <version>0.0.5-RELEASE</version>
 
     <modules>
         <module>act</module>

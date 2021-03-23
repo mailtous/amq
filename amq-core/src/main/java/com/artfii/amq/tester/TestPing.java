@@ -1,6 +1,9 @@
 package com.artfii.amq.tester;
 
-import com.artfii.amq.core.*;
+import com.artfii.amq.core.AioMqClient;
+import com.artfii.amq.core.Message;
+import com.artfii.amq.core.MqClientProcessor;
+import com.artfii.amq.core.MqConfig;
 import com.artfii.amq.core.aio.AioProtocol;
 
 import java.io.IOException;
@@ -22,7 +25,7 @@ public class TestPing {
         AioMqClient<Message> client = new AioMqClient(new AioProtocol(), processor);
         client.start(channelGroup);
         //
-        Message message = processor.publishJob("topic_get_userById",2);
+        Message message = processor.pingJob("topic_get_userById",2);
         System.err.println(message);
 
 

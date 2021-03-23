@@ -28,6 +28,18 @@ public class Message<K extends Message.Key, V> implements KV<K, V> {
     private String token; // 用于保存 SSL token,通过校验token,以避免加密所有通讯内容,以增加通讯速度.
 
     ////=============================================
+
+    /**
+     * 创建 MESSAGE ID 格式: xx(2位客户机编号)_yyyyMMddHHmmssSSS"(17) + (2位)原子顺序数累加
+     *
+     * @param clientId
+     * @return
+     */
+    public static String createId(String clientId) {
+        String id = clientId + ID.ONLY.id(ID.atomic_num_two);
+        return id;
+    }
+
     public static Message ofDef(Key k, Object v) {
         long now = System.currentTimeMillis();
         Message m = new Message();
@@ -51,28 +63,28 @@ public class Message<K extends Message.Key, V> implements KV<K, V> {
      *
      * @return
      */
-    public static Message ofAcked(String msgId, Life life) {
+    public static Message ofAcked(String msgId) {
         Message m = new Message();
-        m.setK(new Key());
-        m.k.id = msgId;
-        m.life = life;
+        m.k = Key.ofDef();
+        m.life = Life.SPARK;
         m.setType(Type.ACK);
         m.k.sendNode = null;
         m.k.topic = null;
         m.stat = null;
-        m.v = null;
+        m.v = msgId;
         return m;
     }
 
-    /**
-     * 创建 MESSAGE ID 格式: xx(2位客户机编号)_yyyyMMddHHmmssSSS"(17) + (2位)原子顺序数累加
-     *
-     * @param clientId
-     * @return
-     */
-    public static String createId(String clientId) {
-        String id = clientId + ID.ONLY.id(ID.atomic_num_two);
-        return id;
+    public static Message ofEndJob(String msgId) {
+        Message m = new Message();
+        m.k = Key.ofDef();
+        m.life = Life.SPARK;
+        m.setType(Type.END_JOB);
+        m.k.sendNode = null;
+        m.k.topic = null;
+        m.stat = null;
+        m.v = msgId;
+        return m;
     }
 
     // ======================================================= MESSAGE BUILD BEGIN ======================================
@@ -87,9 +99,9 @@ public class Message<K extends Message.Key, V> implements KV<K, V> {
         return message;
     }
 
-    public static <V> Message buildPublishJob(String topic, V v, Integer sendNode) {
+    public static <V> Message buildPingJob(String topic, V v, Integer sendNode) {
         Message.Key mKey = key(topic, sendNode);
-        Message message = Message.ofPublicJob(mKey, v);
+        Message message = Message.ofPingJob(mKey, v);
         return message;
     }
 
@@ -99,20 +111,26 @@ public class Message<K extends Message.Key, V> implements KV<K, V> {
         return message;
     }
 
-    public static <V> Message buildFinishJob(String topic, V v, Integer sendNode) {
-        String jobTopic = buildFinishJobTopic(topic);
+    public static <V> Message buildPongJob(String topic, V v, Integer sendNode) {
+        String jobTopic = buildPongJobTopic(topic);
         Message.Key mKey = key(jobTopic, sendNode);
-        Message message = Message.ofFinishJob(mKey, v);
+        Message message = Message.ofPongJob(mKey, v);
         return message;
     }
 
-    public static Message buildAck(String msgId, Message.Life life) {
-        Message message = Message.ofAcked(msgId, life);
+    public static Message buildAck(String msgId) {
+        Message message = Message.ofAcked(msgId);
+        return message;
+    }
+
+    public static Message buildOfEndJob(String msgId) {
+        Message message = Message.ofEndJob(msgId);
         return message;
     }
 
     public static Message.Key key(String topic, Integer sendNode) {
-        Message.Key mKey = new Message.Key(createId(""), topic);
+        Message.Key mKey = Key.ofDef();
+        mKey.setTopic(topic);
         mKey.setSendNode(sendNode);
         return mKey;
     }
@@ -122,7 +140,7 @@ public class Message<K extends Message.Key, V> implements KV<K, V> {
      * @param oldTopic  原来的 TOPIC
      * @return
      */
-    public static String buildFinishJobTopic(String oldTopic) {
+    public static String buildPongJobTopic(String oldTopic) {
         return BACK + "_" + oldTopic;
     }
 
@@ -130,17 +148,17 @@ public class Message<K extends Message.Key, V> implements KV<K, V> {
         return ofDef(k, v).setSubscribeId(k.id).setLife(life).setListen(listen).setType(Type.SUBSCRIBE);
     }
 
-    private static <V> Message ofPublicJob(Key k, V v) {
+    private static <V> Message ofPingJob(Key k, V v) {
         //注意这里不生成普通的订阅. MQ 中心里会手动生成一个特殊的订阅
-        return ofDef(k, v).setLife(Life.ALL_ACKED).setListen(Listen.FUTURE_AND_ONCE).setType(Type.PUBLISH_JOB);
+        return ofDef(k, v).setLife(Life.ALL_ACKED).setListen(Listen.FUTURE_AND_ONCE).setType(Type.PING_JOB);
     }
 
-    private static Message ofAcceptJob(Key k) {//实际上是一个订阅类别的消息
+    private static Message ofAcceptJob(Key k) {//实际上是一个特殊的订阅类别的消息
         return ofSubscribe(k, null, Life.FOREVER, Listen.CALLBACK).setType(Type.ACCEPT_JOB);
     }
 
-    private static <V> Message ofFinishJob(Key k, V v) {
-        return ofDef(k, v).setLife(Life.SPARK).setType(Type.FINISH_JOB);
+    private static <V> Message ofPongJob(Key k, V v) {
+        return ofDef(k, v).setLife(Life.SPARK).setType(Type.PONG_JOB);
     }
 
     // ======================================================= MESSAGE BUILD END =========================================
@@ -164,7 +182,6 @@ public class Message<K extends Message.Key, V> implements KV<K, V> {
         stat.setMtime(System.currentTimeMillis());
         stat.setOn(ON.ACKED);
     }
-
     /**
      * 累加重发次数
      */
@@ -455,9 +472,11 @@ public class Message<K extends Message.Key, V> implements KV<K, V> {
         SUBSCRIBE, // 普通订阅
         PUBLISH,   // 普通发布消息
         ACK,       // 签收消息
-        PUBLISH_JOB, //发布工作任务(PING)
+        PING_JOB,  //发布工作任务(PING_JOB)
         ACCEPT_JOB,  //接受工作任务
-        FINISH_JOB;  //完成工作任务(PONG)
+        PONG_JOB,    //还回工作结果(PONG)
+        END_JOB,     //工作流程全部完成
+        ;
     }
 
     /**

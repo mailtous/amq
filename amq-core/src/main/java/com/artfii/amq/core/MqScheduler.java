@@ -2,8 +2,6 @@ package com.artfii.amq.core;
 
 import com.artfii.amq.core.store.IStore;
 import com.artfii.amq.tools.RingBufferQueue;
-import com.artfii.amq.core.store.IStore;
-import com.artfii.amq.tools.RingBufferQueue;
 import org.osgl.util.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -160,7 +158,7 @@ public enum MqScheduler {
                         String id = message.getK().getId();
                         logger.warn("The scheduler task is running remove message({}) on TTL.", id);
                         ProcessorImpl.INST.removeDbDataOfDone(id);
-                        ProcessorImpl.INST.removeCacheOfDone(id);
+                        ProcessorImpl.INST.removeCommonMsgCacheOfDone(id);
                     }
                 }
 
