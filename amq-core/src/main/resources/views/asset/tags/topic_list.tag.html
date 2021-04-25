@@ -26,12 +26,9 @@
         submit(e)
         {
             e.preventDefault();
-            console.log("DO SUBMIT" );
-            topic = tag.refs.topic.value;
-            begin = tag.refs.begin.value;
-            end = tag.refs.end.value;
+            console.log("DO SUBMIT");
             if (topic == "" || begin == "" || end == "") return;
-            query(queryUrl, pageNumber,pageSize);
+            query(queryUrl, pageNumber, pageSize);
         }
         eventBus.on("page-limit-change", function (size) {
             console.log("每页条数" + pageSize);
@@ -45,6 +42,9 @@
         });
 
         var query = function (url, pageNumber, pageSize) {
+            topic = tag.refs.topic.value;
+            begin = tag.refs.begin.value;
+            end = tag.refs.end.value;
             if (topic == "" || begin == "" || end == "") return;
             var params = {"topic": topic, "begin": begin, "end": end, "pageNumber": pageNumber, "pageSize": pageSize};
             $.get(url, params, function (data) {
@@ -52,7 +52,56 @@
                     console.log(data.items);
                     tag.items = data.items;
                     //传值给分页条
-                    eventBus.trigger("page-result",data.total,pageNumber,pageSize);
+                    eventBus.trigger("page-result", data.total, pageNumber, pageSize);
+                    tag.update();
+                }
+            });
+            tag.refs.topic = topic;
+            tag.refs.begin = begin;
+            tag.refs.end = end;
+        }
+
+
+
+        var tag = this;
+        tag.items = []
+        var queryUrl = "/topic/q";
+        var pageNumber = 1;
+        var pageSize = 10;
+        var topic = "";
+        var begin = "";
+        var end = "";
+
+        submit(e)
+        {
+            e.preventDefault();
+            console.log("DO SUBMIT");
+            if (topic == "" || begin == "" || end == "") return;
+            query(queryUrl, pageNumber, pageSize);
+        }
+        eventBus.on("page-limit-change", function (size) {
+            console.log("每页条数" + pageSize);
+            pageSize = size;
+            query(queryUrl, 1, size);
+        });
+
+        eventBus.on("page-number-change", function (pageNumber) {
+            console.log("当前页数" + pageNumber);
+            query(queryUrl, pageNumber, pageSize);
+        });
+
+        var query = function (url, pageNumber, pageSize) {
+            topic = tag.refs.topic.value;
+            begin = tag.refs.begin.value;
+            end = tag.refs.end.value;
+            if (topic == "" || begin == "" || end == "") return;
+            var params = {"topic": topic, "begin": begin, "end": end, "pageNumber": pageNumber, "pageSize": pageSize};
+            $.get(url, params, function (data) {
+                if (data != null) {
+                    console.log(data.items);
+                    tag.items = data.items;
+                    //传值给分页条
+                    eventBus.trigger("page-result", data.total, pageNumber, pageSize);
                     tag.update();
                 }
             });
