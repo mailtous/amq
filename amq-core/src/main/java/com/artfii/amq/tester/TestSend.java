@@ -1,6 +1,9 @@
 package com.artfii.amq.tester;
 
-import com.artfii.amq.core.*;
+import com.artfii.amq.core.AioMqClient;
+import com.artfii.amq.core.Message;
+import com.artfii.amq.core.MqClientProcessor;
+import com.artfii.amq.core.MqConfig;
 import com.artfii.amq.core.aio.AioProtocol;
 
 import java.io.IOException;
@@ -33,7 +36,7 @@ public class TestSend {
         for (int i = 0; i < nums; i++) { // 测试时,最好把 aioServer.setWriteQueueSize 的大小设置为 >= 测试次数
 //            Thread.sleep(2,500);
             TestUser user = new TestUser(i, "alice");
-            processor.publish("topic_hello", user, Message.Life.SPARK);
+            processor.publish("topic_hello", user, Message.Life.ALL_ACKED);
             System.err.println("send : " + user.toString());
         }
         System.err.println("Time(ms):" + (System.currentTimeMillis() - s));

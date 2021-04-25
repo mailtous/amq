@@ -1,7 +1,5 @@
 package com.artfii.amq.core.store;
 
-import com.artfii.amq.serializer.ISerializer;
-import com.artfii.amq.tools.FastList;
 import com.artfii.amq.core.Message;
 import com.artfii.amq.core.Subscribe;
 import com.artfii.amq.serializer.ISerializer;
@@ -113,10 +111,12 @@ public abstract class MapDbBaseStore implements IStore {
     private <T> void filterByPage(Page page, List<T> oldList) {
         int total = oldList.size();
         page.setTotal(total);
-        int first = page.first();
-        int limit = first + page.limit();
-        List<T> items = oldList.subList(first, limit);
-        page.setItems(items);
+        if (total > 0) {
+            int first = page.first();
+            int limit = first + page.limit();
+            List<T> items = oldList.subList(first, limit);
+            page.setItems(items);
+        }
     }
 
     /**
