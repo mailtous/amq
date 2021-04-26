@@ -194,22 +194,16 @@ public enum ProcessorImpl implements MqProcessor {
      */
     @Override
     public void publishJobToWorker(AioPipe<Message> pipe,Message message) {
-        pulishJobEvent(pipe,message);
+        job_worker.publishEvent(JobEvent::translate,pipe, message);
         tiggerStoreCommonMessageToDb(persistent_worker, message);
     }
 
-    private void pulishJobEvent(AioPipe<Message> pipe,Message message) {
-        job_worker.publishEvent(JobEvent::translate,pipe, message);
-    }
-
     /**
-     * 分派消息
-     *
+     * 直接把消息发给订阅者（普通消息）
      * @param message
      */
-    public void pulishJobEvent(Message message) {
-        message.getStat().setOn(Message.ON.SENED);
-        job_worker.publishEvent(JobEvent::translate, message);
+    public void directSendMsgToSubscibe(Message message) {
+        sendMessageToSubcribeList(message);
     }
 
     private void tiggerStoreAllMsgToDb(RingBuffer<JobEvent> ringBuffer, Message message) {

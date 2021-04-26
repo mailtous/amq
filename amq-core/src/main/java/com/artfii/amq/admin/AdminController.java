@@ -1,6 +1,7 @@
 package com.artfii.amq.admin;
 
 import com.artfii.amq.core.Message;
+import com.artfii.amq.core.ProcessorImpl;
 import com.artfii.amq.core.Subscribe;
 import com.artfii.amq.core.aio.plugin.MonitorPlugin;
 import com.artfii.amq.core.store.Condition;
@@ -12,6 +13,7 @@ import com.artfii.amq.http.routes.Get;
 import com.artfii.amq.http.routes.Url;
 
 import java.util.Date;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * Func : MQ 后台管理查询
@@ -63,6 +65,27 @@ public class AdminController extends BaseController {
     public static void main(String[] args) {
         Condition c = new Condition<Subscribe>(s -> s.getTopic().startsWith("hello"));
         System.err.println(c);
+    }
+
+    /**
+     * 重发
+     * @param msgid
+     * @return
+     */
+    @Get("/resend")
+    public Render reSend(String msgid) {
+        Message message = null;
+        ConcurrentSkipListMap<String, Message> cacheMsgMap = ProcessorImpl.INST.getCache_common_publish_message();
+        message = cacheMsgMap.get(msgid); //先从缓存读取
+        if (null == message) {
+            String dbName = IStore.server_mq_common_publish;
+            message = IStore.ofServer().get(dbName, msgid, Message.class);
+        }
+        if (null != message) {
+            ProcessorImpl.INST.directSendMsgToSubscibe(message);
+            return Render.json("succ");
+        }
+        return Render.json("fail");
     }
 
 

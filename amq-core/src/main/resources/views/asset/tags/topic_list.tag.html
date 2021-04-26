@@ -5,7 +5,9 @@
     <button onclick={ submit }>查询</button>
 
     <ul>
-        <li each={ item, i in items }>{ i+1 } -- { JSON.stringify(item.v) } -- { Date.fmt(item.stat.ctime)}</li>
+        <li each={ item, i in items }>{ i+1 } -- { JSON.stringify(item.v) } -- { Date.fmt(item.stat.ctime)}  &nbsp; &nbsp;
+        <button class="btn-resend" val={item.k.id} onclick="{resend}" >重发</button>
+        </li>
     </ul>
 
     <page-nav></page-nav>
@@ -56,6 +58,17 @@
             tag.refs.topic = topic;
             tag.refs.begin = begin;
             tag.refs.end = end;
+        }
+        //重发
+        resend(e){
+            var id =e.target.getAttribute("val")
+            var url = "/resend";
+            var params = {"msgid": id}
+            $.get(url, params, function (data) {
+                if (data != null) {
+                    console.log(data);
+                }
+            });
         }
 
     </script>

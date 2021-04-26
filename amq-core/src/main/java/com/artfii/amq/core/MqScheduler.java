@@ -84,7 +84,7 @@ public enum MqScheduler {
                         if (MqConfig.inst.msg_not_acked_resend_max_times > message.getStat().getDelay()) {
                             logger.warn("The scheduler task is running delay-send message({})! " , message.getK().getId());
                             message.incrDelay();
-                            ProcessorImpl.INST.pulishJobEvent(message);
+                            ProcessorImpl.INST.directSendMsgToSubscibe(message);
                         }
                     }
                 }
@@ -115,7 +115,7 @@ public enum MqScheduler {
                         if (MqConfig.inst.msg_falt_message_resend_max_times > message.getStat().getRetry()) {
                             logger.warn("The scheduler task is running retry-send message ({})!",message.getK().getId());
                             message.incrRetry();
-                            ProcessorImpl.INST.pulishJobEvent(message);
+                            ProcessorImpl.INST.directSendMsgToSubscibe(message);
                         }
                     }
                 }
